@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 230, 77, 0.08), transparent),
+      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0, 230, 77, 0.04), transparent);
+    background-attachment: fixed;
+  }
+  ::selection {
+    @apply bg-pitch-500/30 text-white;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .card {
+    @apply rounded-2xl border border-white/5 bg-ink-800/60 backdrop-blur-sm shadow-card;
+  }
+  .neon-divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-pitch-500/40 to-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #121821;
+}
+::-webkit-scrollbar-thumb {
+  background: #27303e;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #364152;
+}
