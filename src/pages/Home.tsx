@@ -1,4 +1,4 @@
-import { CalendarDays, Radio, Trophy, ChevronRight, Info, AlertCircle } from 'lucide-react';
+import { CalendarDays, Radio, Trophy, ChevronRight, Info, AlertCircle, Heart } from 'lucide-react';
 import type { League, Match } from '@/types';
 import { formatKickoff } from '@/data';
 import LeagueFilter from '@/components/LeagueFilter';
@@ -29,6 +29,24 @@ export default function Home({
   onRetry,
 }: HomeProps) {
     const [search, setSearch] = useState('');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+  try {
+    return JSON.parse(localStorage.getItem('goalzone-favorites') || '[]');
+  } catch {
+    return [];
+  }
+});
+
+const toggleFavorite = (team: string) => {
+  setFavorites((current) => {
+    const updated = current.includes(team)
+      ? current.filter((name) => name !== team)
+      : [...current, team];
+
+    localStorage.setItem('goalzone-favorites', JSON.stringify(updated));
+    return updated;
+  });
+};
 
   const filtered = matches.filter((m) => {
     const matchesLeague = activeLeague === 'all' || m.leagueId === activeLeague;
@@ -108,6 +126,32 @@ export default function Home({
                 </h2>
               </div>
               <LeagueFilter leagues={leagues} active={activeLeague} onChange={onLeagueChange} />
+              <div className="mb-5 rounded-xl border border-white/10 bg-white/5 p-4">
+  <h3 className="mb-3 flex items-center gap-2 font-bold">
+    <Heart className="h-5 w-5 text-red-400" />
+    Favorite Teams
+  </h3>
+
+  <div className="flex flex-wrap gap-2">
+    {Array.from(
+      new Set(matches.flatMap((m) => [m.home.name, m.away.name]))
+    ).sort().map((team) => (
+      <button
+        key={team}
+        type="button"
+        onClick={() => toggleFavorite(team)}
+        aria-pressed={favorites.includes(team)}
+        className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+          favorites.includes(team)
+            ? 'border-red-400 bg-red-500/20 text-red-300'
+            : 'border-white/10 bg-white/5 text-ink-300 hover:border-red-400/50'
+        }`}
+      >
+        {favorites.includes(team) ? '❤️' : '♡'} {team}
+      </button>
+    ))}
+  </div>
+</div>
               <div className="mt-5">
   <input
     type="search"
