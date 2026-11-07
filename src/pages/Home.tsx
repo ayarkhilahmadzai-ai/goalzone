@@ -29,6 +29,7 @@ export default function Home({
   onRetry,
 }: HomeProps) {
     const [search, setSearch] = useState('');
+  const [showAllTeams, setShowAllTeams] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
   try {
     return JSON.parse(localStorage.getItem('goalzone-favorites') || '[]');
@@ -134,8 +135,11 @@ const toggleFavorite = (team: string) => {
 
   <div className="flex flex-wrap gap-2">
     {Array.from(
-      new Set(matches.flatMap((m) => [m.home.name, m.away.name]))
-    ).sort().map((team) => (
+  new Set(matches.flatMap((m) => [m.home.name, m.away.name]))
+)
+  .sort()
+  .filter((team, index) => showAllTeams || favorites.includes(team) || index < 6)
+  .map((team) => (
       <button
         key={team}
         type="button"
@@ -150,7 +154,15 @@ const toggleFavorite = (team: string) => {
         {favorites.includes(team) ? '❤️' : '♡'} {team}
       </button>
     ))}
-  </div>
+    </div>
+
+  <button
+    type="button"
+    onClick={() => setShowAllTeams(!showAllTeams)}
+    className="mt-4 text-sm font-semibold text-pitch-400 hover:text-pitch-300"
+  >
+    {showAllTeams ? 'Show less ↑' : 'View all teams →'}
+  </button>
 </div>
               <div className="mt-5">
   <input
