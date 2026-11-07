@@ -60,7 +60,7 @@ const { data, error } = dbResult;
     ...rowToMatch({
       ...m,
       id: `api-${m.home_short}-${m.away_short}-${m.kickoff}`,
-      league_id: 'epl',
+      
       created_at: new Date().toISOString(),
     }),
   }));
