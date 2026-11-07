@@ -11,6 +11,8 @@ import AdminLogin from '@/pages/AdminLogin';
 import AdminDashboard from '@/pages/AdminDashboard';
 import { SAMPLE_LEAGUES } from '@/data';
 import type { Match } from '@/types';
+const FOOTBALL_FUNCTION_URL =
+  'https://xjbhwcylmoumszrafknf.supabase.co/functions/v1/football-matches';
 
 type Route = 'home' | 'admin';
 
@@ -36,15 +38,35 @@ function AppInner() {
   const loadMatches = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
-    const { data, error } = await supabase
-      .from('matches')
-      .select('*')
-      .order('kickoff', { ascending: false });
+    const [dbResult, footballResult] = await Promise.all([
+  supabase
+    .from('matches')
+    .select('*')
+    .order('kickoff', { ascending: false }),
+  supabase.functions.invoke('football-matches', { body: {} }),
+]);
+
+const { data, error } = dbResult;
     if (error) {
-      setLoadError(true);
-    } else if (data) {
-      setMatches((data as MatchRow[]).map(rowToMatch));
-    }
+  setLoadError(true);
+} else {
+  const manualMatches = ((data ?? []) as MatchRow[]).map(rowToMatch);
+
+  const apiRows = footballResult.error
+    ? []
+    : (footballResult.data?.matches ?? []);
+
+  const automaticMatches: Match[] = apiRows.map((m: MatchRow) => ({
+    ...rowToMatch({
+      ...m,
+      id: `api-${m.home_short}-${m.away_short}-${m.kickoff}`,
+      league_id: 'epl',
+      created_at: new Date().toISOString(),
+    }),
+  }));
+
+  setMatches([...manualMatches, ...automaticMatches]);
+}
     setLoading(false);
   }, []);
 
