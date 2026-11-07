@@ -65,7 +65,7 @@ const { data, error } = dbResult;
     }),
   }));
 
-  setMatches([...manualMatches, ...automaticMatches]);
+  setMatches(automaticMatches);
 }
     setLoading(false);
   }, []);
