@@ -37,7 +37,14 @@ function StatusBadge({ match }: { match: Match }) {
     return (
       <div className="flex items-center gap-2 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
         <span className="h-2 w-2 animate-pulse rounded-full bg-pitch-400" />
-        LIVE {match.minute != null ? `${match.minute}'` : ''}
+        LIVE{' '}
+{match.minute != null
+  ? `${match.minute}${
+      match.extraTime != null && match.extraTime > 0
+        ? `+${match.extraTime}`
+        : ''
+    }'`
+  : ''}
       </div>
     );
   }
@@ -295,7 +302,11 @@ export default function MatchPage({
 
               {isLive && match.minute != null && (
                 <span className="mt-2 text-sm font-bold text-pitch-400">
-                  {match.minute}'
+                  {match.minute}
+{match.extraTime != null && match.extraTime > 0
+  ? `+${match.extraTime}`
+  : ''}
+'
                 </span>
               )}
             </div>
