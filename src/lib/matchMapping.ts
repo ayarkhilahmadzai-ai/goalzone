@@ -1,13 +1,21 @@
-import type { Match, MatchEvent } from '@/types';
+
+import type {
+  Match,
+  MatchEvent,
+  MatchStatus,
+  Team,
+} from '@/types';
 
 export interface MatchRow {
   id: string;
   home_team: string;
   home_short: string;
   home_color: string;
+  home_crest?: string | null;
   away_team: string;
   away_short: string;
   away_color: string;
+  away_crest?: string | null;
   league: string;
   league_id: string;
   home_score: number;
@@ -26,8 +34,18 @@ export function rowToMatch(r: MatchRow): Match {
     id: r.id,
     league: r.league,
     leagueId: r.league_id,
-    home: { name: r.home_team, short: r.home_short, color: r.home_color },
-    away: { name: r.away_team, short: r.away_short, color: r.away_color },
+    home: {
+      name: r.home_team,
+      short: r.home_short,
+      color: r.home_color,
+      crestUrl: r.home_crest ?? undefined,
+    },
+    away: {
+      name: r.away_team,
+      short: r.away_short,
+      color: r.away_color,
+      crestUrl: r.away_crest ?? undefined,
+    },
     homeScore: r.home_score,
     awayScore: r.away_score,
     status: r.status,
@@ -35,7 +53,9 @@ export function rowToMatch(r: MatchRow): Match {
     kickoff: r.kickoff,
     venue: r.venue,
     events: [],
-    streamAuthorized: Boolean(r.stream_url && /^https?:\/\//.test(r.stream_url)),
+    streamAuthorized: Boolean(
+      r.stream_url && /^https?:\/\//.test(r.stream_url)
+    ),
     streamUrl: r.stream_url ?? undefined,
     embedUrl: r.embed_url ?? undefined,
   };
