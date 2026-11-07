@@ -14,6 +14,32 @@ export interface MatchEvent {
   player: string;
 }
 
+export interface MatchPlayer {
+  id: string;
+  name: string;
+  number?: number;
+  position?: string;
+  imageUrl?: string;
+  substitute: boolean;
+}
+
+export interface MatchStatistic {
+  name: string;
+  home: number;
+  away: number;
+}
+
+export interface MatchDetails {
+  source: 'thesportsdb';
+  eventId: string;
+  lineups: {
+    home: MatchPlayer[];
+    away: MatchPlayer[];
+  };
+  statistics: MatchStatistic[];
+  events: MatchEvent[];
+}
+
 export interface Match {
   id: string;
   league: string;
@@ -30,6 +56,9 @@ export interface Match {
   streamAuthorized: boolean;
   streamUrl?: string;
   embedUrl?: string;
+
+  // Extra information when available
+  details?: MatchDetails;
 }
 
 export interface League {
