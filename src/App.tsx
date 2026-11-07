@@ -11,8 +11,29 @@ import AdminLogin from '@/pages/AdminLogin';
 import AdminDashboard from '@/pages/AdminDashboard';
 import { SAMPLE_LEAGUES } from '@/data';
 import type { Match } from '@/types';
-const FOOTBALL_FUNCTION_URL =
-  'https://xjbhwcylmoumszrafknf.supabase.co/functions/v1/football-matches';
+async function fetchMatchDetails(match: Match) {
+  const { data, error } = await supabase.functions.invoke(
+    'football-details',
+    {
+      body: {
+        homeTeam: match.home.name,
+        awayTeam: match.away.name,
+        date: match.kickoff.slice(0, 10),
+      },
+    }
+  );
+
+  if (error) {
+    console.error('Could not load match details:', error);
+    return null;
+  }
+
+  if (!data?.success || !data?.found || !data?.details) {
+    return null;
+  }
+
+  return data.details;
+}
 
 type Route = 'home' | 'admin';
 
