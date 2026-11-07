@@ -1,17 +1,36 @@
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { rowToMatch, type MatchRow } from '@/lib/matchMapping';
+import {
+  rowToMatch,
+  type MatchRow,
+} from '@/lib/matchMapping';
+
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LiveTicker from '@/components/LiveTicker';
+
 import Home from '@/pages/Home';
 import MatchPage from '@/pages/MatchPage';
 import AdminLogin from '@/pages/AdminLogin';
 import AdminDashboard from '@/pages/AdminDashboard';
+
 import { SAMPLE_LEAGUES } from '@/data';
-import type { Match, MatchDetails } from '@/types';
+
+import type {
+  Match,
+  MatchDetails,
+  MatchEvent,
+  MatchPlayer,
+  MatchStatistic,
+} from '@/types';
 
 type Route = 'home' | 'admin';
 
@@ -21,57 +40,381 @@ function parseHash(): Route {
     : 'home';
 }
 
+type ApiFootballEvent = {
+  time?: {
+    elapsed?: number | null;
+    extra?: number | null;
+  };
+  team?: {
+    id?: number;
+    name?: string;
+  };
+  player?: {
+    name?: string;
+  };
+  type?: string;
+  detail?: string;
+};
+
+type ApiFootballLineupPlayer = {
+  player?: {
+    id?: number;
+    name?: string;
+    number?: number;
+    pos?: string;
+  };
+};
+
+type ApiFootballLineup = {
+  team?: {
+    name?: string;
+    id?: number;
+  };
+  startXI?: ApiFootballLineupPlayer[];
+  substitutes?: ApiFootballLineupPlayer[];
+};
+
+type ApiFootballStatistic = {
+  team?: {
+    name?: string;
+    id?: number;
+  };
+  statistics?: {
+    type?: string;
+    value?: number | string | null;
+  }[];
+};
+
+function normalizeTeamName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\b(fc|cf|afc|sc|club|football)\b/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function sameTeam(a: string, b: string): boolean {
+  return normalizeTeamName(a) === normalizeTeamName(b);
+}
+
+function getEventType(
+  event: ApiFootballEvent
+): MatchEvent['type'] | null {
+  const type = (event.type ?? '').toLowerCase();
+  const detail = (event.detail ?? '').toLowerCase();
+
+  if (type === 'goal') {
+    return 'goal';
+  }
+
+  if (type === 'subst') {
+    return 'sub';
+  }
+
+  if (type === 'card') {
+    if (detail.includes('red')) {
+      return 'red';
+    }
+
+    if (detail.includes('yellow')) {
+      return 'yellow';
+    }
+  }
+
+  return null;
+}
+
+function mapEvents(
+  rawEvents: ApiFootballEvent[],
+  match: Match
+): MatchEvent[] {
+  const result: MatchEvent[] = [];
+
+  for (const event of rawEvents) {
+    const type = getEventType(event);
+
+    if (!type) continue;
+
+    const minute = event.time?.elapsed;
+
+    if (typeof minute !== 'number') continue;
+
+    const teamName = event.team?.name ?? '';
+
+    let team: 'home' | 'away';
+
+    if (sameTeam(teamName, match.home.name)) {
+      team = 'home';
+    } else if (sameTeam(teamName, match.away.name)) {
+      team = 'away';
+    } else {
+      // Do not assign an event to the wrong team.
+      continue;
+    }
+
+    result.push({
+      minute,
+      type,
+      team,
+      player: event.player?.name || 'Unknown player',
+    });
+  }
+
+  return result.sort(
+    (a, b) => a.minute - b.minute
+  );
+}
+
+function mapPlayers(
+  players: ApiFootballLineupPlayer[],
+  substitute: boolean
+): MatchPlayer[] {
+  return players
+    .filter((entry) => Boolean(entry.player?.name))
+    .map((entry, index) => {
+      const player = entry.player!;
+
+      return {
+        id: String(
+          player.id ??
+            `${substitute ? 'sub' : 'start'}-${index}`
+        ),
+        name: player.name!,
+        number: player.number ?? undefined,
+        position: player.pos ?? undefined,
+        substitute,
+      };
+    });
+}
+
+function mapLineups(
+  rawLineups: ApiFootballLineup[],
+  match: Match
+): MatchDetails['lineups'] {
+  const result: MatchDetails['lineups'] = {
+    home: [],
+    away: [],
+  };
+
+  for (const lineup of rawLineups) {
+    const teamName = lineup.team?.name ?? '';
+
+    let side: 'home' | 'away';
+
+    if (sameTeam(teamName, match.home.name)) {
+      side = 'home';
+    } else if (sameTeam(teamName, match.away.name)) {
+      side = 'away';
+    } else {
+      continue;
+    }
+
+    result[side] = [
+      ...mapPlayers(lineup.startXI ?? [], false),
+      ...mapPlayers(lineup.substitutes ?? [], true),
+    ];
+  }
+
+  return result;
+}
+
+function statisticNumber(
+  value: number | string | null | undefined
+): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const parsed = Number(
+    value.replace('%', '').trim()
+  );
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function mapStatistics(
+  rawStatistics: ApiFootballStatistic[],
+  match: Match
+): MatchStatistic[] {
+  const home = rawStatistics.find((entry) =>
+    sameTeam(entry.team?.name ?? '', match.home.name)
+  );
+
+  const away = rawStatistics.find((entry) =>
+    sameTeam(entry.team?.name ?? '', match.away.name)
+  );
+
+  if (!home || !away) {
+    return [];
+  }
+
+  const awayValues = new Map<
+    string,
+    number
+  >();
+
+  for (const statistic of away.statistics ?? []) {
+    if (!statistic.type) continue;
+
+    const value = statisticNumber(statistic.value);
+
+    if (value !== null) {
+      awayValues.set(statistic.type, value);
+    }
+  }
+
+  const result: MatchStatistic[] = [];
+
+  for (const statistic of home.statistics ?? []) {
+    if (!statistic.type) continue;
+
+    const homeValue = statisticNumber(
+      statistic.value
+    );
+
+    const awayValue = awayValues.get(
+      statistic.type
+    );
+
+    if (
+      homeValue === null ||
+      awayValue === undefined
+    ) {
+      continue;
+    }
+
+    result.push({
+      name: statistic.type,
+      home: homeValue,
+      away: awayValue,
+    });
+  }
+
+  return result;
+}
+
 async function fetchMatchDetails(
   match: Match
 ): Promise<MatchDetails | null> {
-  const { data, error } = await supabase.functions.invoke(
-    'football-details',
-    {
-      body: {
-        homeTeam: match.home.name,
-        awayTeam: match.away.name,
-        date: match.kickoff.slice(0, 10),
-      },
-    }
-  );
+  const fixtureId = match.apiFootballFixtureId;
+
+  if (
+    typeof fixtureId !== 'number' ||
+    !Number.isSafeInteger(fixtureId) ||
+    fixtureId <= 0
+  ) {
+    return null;
+  }
+
+  const { data, error } =
+    await supabase.functions.invoke(
+      'football-api-details',
+      {
+        body: { fixtureId },
+      }
+    );
 
   if (error) {
-    console.error('Could not load match details:', error);
+    console.error(
+      'Could not load API-Football details:',
+      error
+    );
+
     return null;
   }
 
-  if (!data?.success || !data?.found || !data?.details) {
+  if (
+    !data?.success ||
+    !data?.found ||
+    !data?.details
+  ) {
     return null;
   }
 
-  return data.details as MatchDetails;
+  const raw = data.details;
+
+  return {
+    source: 'api-football',
+    eventId: String(fixtureId),
+
+    events: mapEvents(
+      Array.isArray(raw.events)
+        ? raw.events
+        : [],
+      match
+    ),
+
+    lineups: mapLineups(
+      Array.isArray(raw.lineups)
+        ? raw.lineups
+        : [],
+      match
+    ),
+
+    statistics: mapStatistics(
+      Array.isArray(raw.statistics)
+        ? raw.statistics
+        : [],
+      match
+    ),
+  };
 }
 
 function AppInner() {
-  const { session, loading: authLoading } = useAuth();
+  const {
+    session,
+    loading: authLoading,
+  } = useAuth();
 
-  const [route, setRoute] = useState<Route>(parseHash());
-  const [activeLeague, setActiveLeague] = useState('all');
-  const [selectedMatchId, setSelectedMatchId] =
-    useState<string | null>(null);
+  const [route, setRoute] =
+    useState<Route>(parseHash());
 
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [activeLeague, setActiveLeague] =
+    useState('all');
 
-  const [detailsLoadingId, setDetailsLoadingId] =
-    useState<string | null>(null);
+  const [
+    selectedMatchId,
+    setSelectedMatchId,
+  ] = useState<string | null>(null);
 
-  const [detailsCheckedIds, setDetailsCheckedIds] =
-    useState<string[]>([]);
+  const [matches, setMatches] =
+    useState<Match[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [loadError, setLoadError] =
+    useState(false);
+
+  const [
+    detailsLoadingId,
+    setDetailsLoadingId,
+  ] = useState<string | null>(null);
+
+  const [
+    detailsCheckedIds,
+    setDetailsCheckedIds,
+  ] = useState<string[]>([]);
 
   useEffect(() => {
-    const onHash = () => setRoute(parseHash());
+    const onHash = () =>
+      setRoute(parseHash());
 
-    window.addEventListener('hashchange', onHash);
+    window.addEventListener(
+      'hashchange',
+      onHash
+    );
 
     return () => {
-      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener(
+        'hashchange',
+        onHash
+      );
     };
   }, []);
 
@@ -80,19 +423,30 @@ function AppInner() {
     setLoadError(false);
 
     try {
-      const [dbResult, footballResult] = await Promise.all([
+      const [
+        dbResult,
+        footballResult,
+      ] = await Promise.all([
         supabase
           .from('matches')
           .select('*')
-          .order('kickoff', { ascending: false }),
+          .order('kickoff', {
+            ascending: false,
+          }),
 
-        supabase.functions.invoke('football-matches', {
-          body: {},
-        }),
+        supabase.functions.invoke(
+          'football-matches',
+          {
+            body: {},
+          }
+        ),
       ]);
 
       if (dbResult.error) {
-        console.error('Database error:', dbResult.error);
+        console.error(
+          'Database error:',
+          dbResult.error
+        );
       }
 
       if (footballResult.error) {
@@ -106,36 +460,54 @@ function AppInner() {
         (dbResult.data ?? []) as MatchRow[]
       ).map(rowToMatch);
 
-      const apiRows = footballResult.error
-        ? []
-        : footballResult.data?.matches ?? [];
+      const apiRows: MatchRow[] =
+        footballResult.error
+          ? []
+          : footballResult.data?.matches ?? [];
 
-      const automaticMatches: Match[] = apiRows.map(
-        (m: MatchRow) =>
+      const automaticMatches: Match[] =
+        apiRows.map((m) =>
           rowToMatch({
             ...m,
-            id: `api-${m.home_short}-${m.away_short}-${m.kickoff}`,
-            created_at: new Date().toISOString(),
+            id:
+              `api-${m.home_short}-` +
+              `${m.away_short}-${m.kickoff}`,
+            created_at:
+              new Date().toISOString(),
           })
-      );
+        );
 
-      // Show API matches and manually added matches.
-      // Avoid duplicates when both sources use the same ID.
-      const allMatches = [...automaticMatches];
+      const allMatches = [
+        ...automaticMatches,
+      ];
 
       for (const manualMatch of manualMatches) {
-        if (!allMatches.some((m) => m.id === manualMatch.id)) {
-          allMatches.push(manualMatch);
+        if (
+          !allMatches.some(
+            (m) =>
+              m.id === manualMatch.id
+          )
+        ) {
+          allMatches.push(
+            manualMatch
+          );
         }
       }
 
       setMatches(allMatches);
 
-      if (dbResult.error && footballResult.error) {
+      if (
+        dbResult.error &&
+        footballResult.error
+      ) {
         setLoadError(true);
       }
     } catch (error) {
-      console.error('Error loading matches:', error);
+      console.error(
+        'Error loading matches:',
+        error
+      );
+
       setLoadError(true);
     } finally {
       setLoading(false);
@@ -149,10 +521,16 @@ function AppInner() {
   const selectedMatch = useMemo(
     () =>
       selectedMatchId
-        ? matches.find((m) => m.id === selectedMatchId) ?? null
+        ? matches.find(
+            (m) =>
+              m.id === selectedMatchId
+          ) ?? null
         : null,
     [matches, selectedMatchId]
   );
+
+  const selectedFixtureId =
+    selectedMatch?.apiFootballFixtureId;
 
   useEffect(() => {
     if (!selectedMatch) return;
@@ -161,7 +539,8 @@ function AppInner() {
 
     if (
       selectedMatch.details ||
-      detailsCheckedIds.includes(matchId)
+      detailsCheckedIds.includes(matchId) ||
+      !selectedFixtureId
     ) {
       return;
     }
@@ -172,7 +551,10 @@ function AppInner() {
       setDetailsLoadingId(matchId);
 
       try {
-        const details = await fetchMatchDetails(selectedMatch!);
+        const details =
+          await fetchMatchDetails(
+            selectedMatch!
+          );
 
         if (cancelled) return;
 
@@ -183,23 +565,24 @@ function AppInner() {
                 ? {
                     ...match,
                     details,
-                    events:
-                      details.events.length > 0
-                        ? details.events
-                        : match.events,
+                    events: details.events,
                   }
                 : match
             )
           );
         }
 
-        setDetailsCheckedIds((previous) =>
-          previous.includes(matchId)
-            ? previous
-            : [...previous, matchId]
+        setDetailsCheckedIds(
+          (previous) =>
+            previous.includes(matchId)
+              ? previous
+              : [...previous, matchId]
         );
       } catch (error) {
-        console.error('Error loading details:', error);
+        console.error(
+          'Error loading details:',
+          error
+        );
       } finally {
         if (!cancelled) {
           setDetailsLoadingId(null);
@@ -212,10 +595,19 @@ function AppInner() {
     return () => {
       cancelled = true;
     };
-  }, [selectedMatchId, selectedMatch?.id]);
+  }, [
+    selectedMatchId,
+    selectedFixtureId,
+    selectedMatch?.id,
+    selectedMatch?.details,
+    detailsCheckedIds,
+  ]);
 
   const liveMatches = useMemo(
-    () => matches.filter((m) => m.status === 'live'),
+    () =>
+      matches.filter(
+        (m) => m.status === 'live'
+      ),
     [matches]
   );
 
@@ -233,7 +625,8 @@ function AppInner() {
         />
 
         <main className="flex-1">
-          {detailsLoadingId === selectedMatch.id && (
+          {detailsLoadingId ===
+            selectedMatch.id && (
             <div className="py-3 text-center text-sm text-muted-foreground">
               Loading match details...
             </div>
@@ -241,7 +634,9 @@ function AppInner() {
 
           <MatchPage
             match={selectedMatch}
-            onBack={() => setSelectedMatchId(null)}
+            onBack={() =>
+              setSelectedMatchId(null)
+            }
           />
         </main>
 
@@ -267,7 +662,9 @@ function AppInner() {
         />
 
         <main className="flex-1">
-          {session ? <AdminDashboard /> : <AdminLogin />}
+          {session
+            ? <AdminDashboard />
+            : <AdminLogin />}
         </main>
 
         <Footer />
