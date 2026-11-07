@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   ArrowLeft,
@@ -16,7 +17,11 @@ import {
   Clock3,
 } from 'lucide-react';
 
-import type { Match, MatchEvent } from '@/types';
+import type {
+  Match,
+  MatchEvent,
+  MatchPlayer,
+} from '@/types';
 import { formatKickoff } from '@/data';
 import TeamCrest from '@/components/TeamCrest';
 
@@ -57,9 +62,13 @@ function eventIcon(type: MatchEvent['type']) {
     case 'goal':
       return <Goal className="h-4 w-4 text-pitch-400" />;
     case 'yellow':
-      return <Square className="h-4 w-4 fill-amber-400 text-amber-400" />;
+      return (
+        <Square className="h-4 w-4 fill-amber-400 text-amber-400" />
+      );
     case 'red':
-      return <Square className="h-4 w-4 fill-red-500 text-red-500" />;
+      return (
+        <Square className="h-4 w-4 fill-red-500 text-red-500" />
+      );
     case 'sub':
       return <Users className="h-4 w-4 text-blue-400" />;
     default:
@@ -82,6 +91,94 @@ function eventLabel(event: MatchEvent) {
   }
 }
 
+function PlayerList({
+  title,
+  players,
+}: {
+  title: string;
+  players: MatchPlayer[];
+}) {
+  if (players.length === 0) return null;
+
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-bold text-pitch-400">
+        {title}
+      </h3>
+
+      <div className="space-y-2">
+        {players.map((player, index) => (
+          <div
+            key={`${player.id}-${index}`}
+            className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ink-800 text-sm font-bold text-pitch-400">
+              {player.number != null &&
+              Number.isFinite(player.number)
+                ? player.number
+                : '—'}
+            </span>
+
+            <div className="min-w-0">
+              <p className="break-words text-sm font-semibold text-ink-100">
+                {player.name || 'Unknown player'}
+              </p>
+
+              {player.position && (
+                <p className="mt-1 text-xs text-ink-400">
+                  {player.position}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamLineup({
+  name,
+  players,
+}: {
+  name: string;
+  players: MatchPlayer[];
+}) {
+  const starters = players.filter(
+    (player) => !player.substitute
+  );
+
+  const substitutes = players.filter(
+    (player) => player.substitute
+  );
+
+  return (
+    <div className="min-w-0 space-y-6">
+      <h3 className="break-words text-center text-sm font-bold text-white">
+        {name}
+      </h3>
+
+      {players.length === 0 ? (
+        <p className="rounded-xl bg-white/5 p-4 text-center text-xs text-ink-400">
+          Lineup not available
+        </p>
+      ) : (
+        <>
+          <PlayerList
+            title="Starting XI"
+            players={starters}
+          />
+
+          <PlayerList
+            title="Substitutes"
+            players={substitutes}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function MatchPage({
   match,
   onBack,
@@ -93,9 +190,21 @@ export default function MatchPage({
     match.status === 'live' ||
     match.status === 'finished';
 
-  const sortedEvents = [...(match.events || [])].sort(
-    (a, b) => a.minute - b.minute
-  );
+  const details = match.details;
+
+  const sortedEvents = [
+    ...(details?.events?.length
+      ? details.events
+      : match.events || []),
+  ].sort((a, b) => a.minute - b.minute);
+
+  const homePlayers = details?.lineups?.home ?? [];
+  const awayPlayers = details?.lineups?.away ?? [];
+
+  const statistics = details?.statistics ?? [];
+
+  const hasLineups =
+    homePlayers.length > 0 || awayPlayers.length > 0;
 
   const hasStream =
     match.streamAuthorized && Boolean(match.streamUrl);
@@ -163,7 +272,9 @@ export default function MatchPage({
               {showScore ? (
                 <span className="font-display text-3xl font-bold tabular-nums text-white sm:text-5xl">
                   {match.homeScore}
-                  <span className="mx-2 text-ink-500">:</span>
+                  <span className="mx-2 text-ink-500">
+                    :
+                  </span>
                   {match.awayScore}
                 </span>
               ) : (
@@ -214,7 +325,7 @@ export default function MatchPage({
         </div>
       </div>
 
-      {/* Match tabs */}
+      {/* Tabs */}
       <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -300,7 +411,7 @@ export default function MatchPage({
         <section className="card mt-5 p-5 sm:p-8">
           <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
             <Users className="h-5 w-5 text-pitch-400" />
-            Starting Lineups
+            Team Lineups
           </h2>
 
           <div className="mb-6 grid grid-cols-2 gap-3">
@@ -308,8 +419,7 @@ export default function MatchPage({
               <div className="mb-3 flex justify-center">
                 <TeamCrest team={match.home} size="lg" />
               </div>
-
-              <p className="text-sm font-semibold">
+              <p className="break-words text-sm font-semibold">
                 {match.home.name}
               </p>
             </div>
@@ -318,26 +428,39 @@ export default function MatchPage({
               <div className="mb-3 flex justify-center">
                 <TeamCrest team={match.away} size="lg" />
               </div>
-
-              <p className="text-sm font-semibold">
+              <p className="break-words text-sm font-semibold">
                 {match.away.name}
               </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-ink-800/40 px-5 py-10 text-center">
-            <Users className="mx-auto mb-4 h-10 w-10 text-pitch-400" />
+          {hasLineups ? (
+            <div className="grid grid-cols-2 gap-3 sm:gap-6">
+              <TeamLineup
+                name={match.home.name}
+                players={homePlayers}
+              />
 
-            <h3 className="font-semibold text-ink-100">
-              Lineups not available yet
-            </h3>
+              <TeamLineup
+                name={match.away.name}
+                players={awayPlayers}
+              />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-ink-800/40 px-5 py-10 text-center">
+              <Users className="mx-auto mb-4 h-10 w-10 text-pitch-400" />
 
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-400">
-              Starting XI, formations and substitutes
-              will appear here when GoalZone has
-              access to verified lineup data.
-            </p>
-          </div>
+              <h3 className="font-semibold text-ink-100">
+                Lineups not available
+              </h3>
+
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-400">
+                Starting players and substitutes will
+                appear when verified lineup data is
+                available.
+              </p>
+            </div>
+          )}
         </section>
       )}
 
@@ -351,7 +474,9 @@ export default function MatchPage({
 
           <div className="mb-6 grid grid-cols-3 items-center gap-2 text-center">
             <div>
-              <TeamCrest team={match.home} size="md" />
+              <div className="flex justify-center">
+                <TeamCrest team={match.home} size="md" />
+              </div>
               <p className="mt-2 text-xs font-semibold">
                 {match.home.short}
               </p>
@@ -362,26 +487,85 @@ export default function MatchPage({
             </span>
 
             <div>
-              <TeamCrest team={match.away} size="md" />
+              <div className="flex justify-center">
+                <TeamCrest team={match.away} size="md" />
+              </div>
               <p className="mt-2 text-xs font-semibold">
                 {match.away.short}
               </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-ink-800/40 px-5 py-10 text-center">
-            <BarChart3 className="mx-auto mb-4 h-10 w-10 text-pitch-400" />
+          {statistics.length > 0 ? (
+            <div className="space-y-5">
+              {statistics.map((stat, index) => {
+                const total = stat.home + stat.away;
 
-            <h3 className="font-semibold text-ink-100">
-              Detailed statistics not available yet
-            </h3>
+                const homePercent =
+                  total > 0
+                    ? (stat.home / total) * 100
+                    : 50;
 
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-400">
-              Ball possession, shots, shots on target,
-              corners and fouls will be displayed
-              when verified statistics are available.
-            </p>
-          </div>
+                const awayPercent = 100 - homePercent;
+
+                const isPercentage =
+                  /possession|percentage/i.test(stat.name);
+
+                return (
+                  <div
+                    key={`${stat.name}-${index}`}
+                    className="rounded-xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <p className="mb-3 text-center text-sm font-semibold text-ink-200">
+                      {stat.name}
+                    </p>
+
+                    <div className="mb-3 flex items-center justify-between text-sm font-bold text-white">
+                      <span>
+                        {stat.home}
+                        {isPercentage ? '%' : ''}
+                      </span>
+
+                      <span>
+                        {stat.away}
+                        {isPercentage ? '%' : ''}
+                      </span>
+                    </div>
+
+                    <div className="flex h-3 w-full overflow-hidden rounded-full bg-ink-800">
+                      <div
+                        className="h-full bg-pitch-500"
+                        style={{
+                          width: `${homePercent}%`,
+                        }}
+                      />
+
+                      <div
+                        className="h-full bg-blue-500"
+                        style={{
+                          width: `${awayPercent}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-ink-800/40 px-5 py-10 text-center">
+              <BarChart3 className="mx-auto mb-4 h-10 w-10 text-pitch-400" />
+
+              <h3 className="font-semibold text-ink-100">
+                Detailed statistics not available
+              </h3>
+
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-400">
+                Shots, possession, corners and other
+                statistics will appear when the data
+                provider has information for this match.
+              </p>
+            </div>
+          )}
         </section>
       )}
 
