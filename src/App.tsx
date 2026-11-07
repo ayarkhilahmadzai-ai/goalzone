@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -388,18 +389,19 @@ function AppInner() {
   const [loading, setLoading] =
     useState(true);
 
-  const [loadError, setLoadError] =
-    useState(false);
+  const [
+    loadError,
+    setLoadError,
+  ] = useState(false);
 
   const [
     detailsLoadingId,
     setDetailsLoadingId,
   ] = useState<string | null>(null);
 
-  const [
-    detailsCheckedIds,
-    setDetailsCheckedIds,
-  ] = useState<string[]>([]);
+  const initialLoadRef = useRef(true);
+  const matchesRequestRef = useRef(false);
+  const selectedMatchRef = useRef<Match | null>(null);
 
   useEffect(() => {
     const onHash = () =>
@@ -419,8 +421,12 @@ function AppInner() {
   }, []);
 
   const loadMatches = useCallback(async () => {
-    setLoading(true);
-    setLoadError(false);
+    if (matchesRequestRef.current) return;
+    matchesRequestRef.current = true;
+
+    if (initialLoadRef.current) {
+      setLoading(true);
+    }
 
     try {
       const [
@@ -494,7 +500,32 @@ function AppInner() {
         }
       }
 
-      setMatches(allMatches);
+      // Behåll redan hämtade detaljer när samma match uppdateras.
+      setMatches((previous) => {
+        const oldById = new Map(
+          previous.map((match) => [match.id, match])
+        );
+
+        return allMatches.map((match) => {
+          const old = oldById.get(match.id);
+
+          if (
+            !old ||
+            old.apiFootballFixtureId !==
+              match.apiFootballFixtureId
+          ) {
+            return match;
+          }
+
+          return {
+            ...match,
+            details: old.details,
+            events: old.events,
+          };
+        });
+      });
+
+      setLoadError(false);
 
       if (
         dbResult.error &&
@@ -510,12 +541,44 @@ function AppInner() {
 
       setLoadError(true);
     } finally {
+      initialLoadRef.current = false;
+      matchesRequestRef.current = false;
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadMatches();
+    void loadMatches();
+
+    // Uppdatera i bakgrunden när fliken är synlig.
+    const timer = window.setInterval(() => {
+      if (
+        document.visibilityState === 'visible'
+      ) {
+        void loadMatches();
+      }
+    }, 30_000);
+
+    const onVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible'
+      ) {
+        void loadMatches();
+      }
+    };
+
+    document.addEventListener(
+      'visibilitychange',
+      onVisibilityChange
+    );
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener(
+        'visibilitychange',
+        onVisibilityChange
+      );
+    };
   }, [loadMatches]);
 
   const selectedMatch = useMemo(
@@ -532,75 +595,137 @@ function AppInner() {
   const selectedFixtureId =
     selectedMatch?.apiFootballFixtureId;
 
+  // Håll senaste valda matchen tillgänglig.
+  selectedMatchRef.current = selectedMatch;
+
   useEffect(() => {
-    if (!selectedMatch) return;
-
-    const matchId = selectedMatch.id;
-
     if (
-      selectedMatch.details ||
-      detailsCheckedIds.includes(matchId) ||
+      !selectedMatchId ||
       !selectedFixtureId
     ) {
       return;
     }
 
     let cancelled = false;
+    let inFlight = false;
 
-    async function loadDetails() {
-      setDetailsLoadingId(matchId);
+    const matchId = selectedMatchId;
+    const fixtureId = selectedFixtureId;
+    const isLive =
+      selectedMatch?.status === 'live';
+
+    async function refreshDetails(
+      force: boolean
+    ) {
+      if (
+        cancelled ||
+        inFlight ||
+        document.visibilityState !== 'visible'
+      ) {
+        return;
+      }
+
+      const current = selectedMatchRef.current;
+
+      if (
+        !current ||
+        current.id !== matchId ||
+        current.apiFootballFixtureId !== fixtureId
+      ) {
+        return;
+      }
+
+      if (
+        !force &&
+        current.details
+      ) {
+        return;
+      }
+
+      inFlight = true;
+
+      if (!current.details) {
+        setDetailsLoadingId(matchId);
+      }
 
       try {
         const details =
-          await fetchMatchDetails(
-            selectedMatch!
-          );
+          await fetchMatchDetails(current);
 
-        if (cancelled) return;
-
-        if (details) {
-          setMatches((previous) =>
-            previous.map((match) =>
-              match.id === matchId
-                ? {
-                    ...match,
-                    details,
-                    events: details.events,
-                  }
-                : match
-            )
-          );
+        if (
+          cancelled ||
+          !details
+        ) {
+          return;
         }
 
-        setDetailsCheckedIds(
-          (previous) =>
-            previous.includes(matchId)
-              ? previous
-              : [...previous, matchId]
+        setMatches((previous) =>
+          previous.map((match) =>
+            match.id === matchId &&
+            match.apiFootballFixtureId === fixtureId
+              ? {
+                  ...match,
+                  details,
+                  events: details.events,
+                }
+              : match
+          )
         );
       } catch (error) {
         console.error(
-          'Error loading details:',
+          'Error refreshing match details:',
           error
         );
       } finally {
+        inFlight = false;
+
         if (!cancelled) {
           setDetailsLoadingId(null);
         }
       }
     }
 
-    loadDetails();
+    // Hämta detaljer vid första öppningen.
+    void refreshDetails(false);
+
+    // Fortsätt uppdatera endast LIVE-matcher.
+    const timer = isLive
+      ? window.setInterval(
+          () => void refreshDetails(true),
+          60_000
+        )
+      : null;
+
+    const onVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        isLive
+      ) {
+        void refreshDetails(true);
+      }
+    };
+
+    document.addEventListener(
+      'visibilitychange',
+      onVisibilityChange
+    );
 
     return () => {
       cancelled = true;
+
+      if (timer !== null) {
+        window.clearInterval(timer);
+      }
+
+      document.removeEventListener(
+        'visibilitychange',
+        onVisibilityChange
+      );
     };
   }, [
     selectedMatchId,
     selectedFixtureId,
-    selectedMatch?.id,
-    selectedMatch?.details,
-    detailsCheckedIds,
+    selectedMatch?.status,
   ]);
 
   const liveMatches = useMemo(
