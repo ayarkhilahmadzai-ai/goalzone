@@ -5,6 +5,7 @@ import LeagueFilter from '@/components/LeagueFilter';
 import MatchCard from '@/components/MatchCard';
 import Standings from '@/components/Standings';
 import TopScorers from '@/components/TopScorers';
+import { useState } from 'react';
 
 interface HomeProps {
   leagues: League[];
@@ -27,7 +28,17 @@ export default function Home({
   loadError,
   onRetry,
 }: HomeProps) {
-  const filtered = activeLeague === 'all' ? matches : matches.filter((m) => m.leagueId === activeLeague);
+    const [search, setSearch] = useState('');
+
+  const filtered = matches.filter((m) => {
+    const matchesLeague = activeLeague === 'all' || m.leagueId === activeLeague;
+
+    const matchesSearch =
+      m.home.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.away.name.toLowerCase().includes(search.toLowerCase());
+
+    return matchesLeague && matchesSearch;
+  });
   const liveMatches = filtered.filter((m) => m.status === 'live');
   const upcoming = filtered.filter((m) => m.status === 'upcoming');
   const finished = filtered.filter((m) => m.status === 'finished');
@@ -97,6 +108,16 @@ export default function Home({
                 </h2>
               </div>
               <LeagueFilter leagues={leagues} active={activeLeague} onChange={onLeagueChange} />
+              <div className="mt-5">
+  <input
+    type="search"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="🔎 Search for a team..."
+    aria-label="Search for a football team"
+    className="w-full rounded-xl border border-white/10 bg-ink-800 px-4 py-3 text-sm text-ink-100 outline-none transition-colors placeholder:text-ink-500 focus:border-pitch-500 sm:max-w-md"
+  />
+</div>
             </section>
 
             {matches.length === 0 && (
