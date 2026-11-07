@@ -4,6 +4,7 @@ export interface Team {
   name: string;
   short: string;
   color: string;
+  crestUrl?: string;
 }
 
 export interface MatchEvent {
