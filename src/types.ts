@@ -1,3 +1,4 @@
+
 export type MatchStatus = 'live' | 'upcoming' | 'finished';
 
 export interface Team {
@@ -30,7 +31,7 @@ export interface MatchStatistic {
 }
 
 export interface MatchDetails {
-  source: 'thesportsdb';
+  source: 'thesportsdb' | 'api-football';
   eventId: string;
   lineups: {
     home: MatchPlayer[];
@@ -44,20 +45,28 @@ export interface Match {
   id: string;
   league: string;
   leagueId: string;
+
   home: Team;
   away: Team;
+
   homeScore: number;
   awayScore: number;
   status: MatchStatus;
+
   minute?: number;
+  extraTime?: number;
+
+  apiFootballFixtureId?: number;
+
   kickoff: string;
   venue: string;
+
   events: MatchEvent[];
+
   streamAuthorized: boolean;
   streamUrl?: string;
   embedUrl?: string;
 
-  // Extra information when available
   details?: MatchDetails;
 }
 
