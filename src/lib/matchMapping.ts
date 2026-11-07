@@ -36,6 +36,7 @@ type MatchWithApiFootball = Match & {
   extraTime?: number;
 };
 
+// Läser både vanliga matcher och API-Football-matcher.
 export function rowToMatch(r: MatchRow): MatchWithApiFootball {
   return {
     id: r.id,
@@ -80,6 +81,7 @@ export function rowToMatch(r: MatchRow): MatchWithApiFootball {
   };
 }
 
+// Sparar bara kolumner som finns i Supabase-tabellen matches.
 export function matchToRow(m: {
   home: Team;
   away: Team;
@@ -95,7 +97,10 @@ export function matchToRow(m: {
   embedUrl?: string;
 }): Omit<
   MatchRow,
-  'id' | 'created_at'
+  | 'id'
+  | 'created_at'
+  | 'extra_time'
+  | 'api_football_fixture_id'
 > {
   return {
     home_team: m.home.name,
@@ -114,9 +119,6 @@ export function matchToRow(m: {
 
     status: m.status,
     minute: m.minute ?? null,
-
-    extra_time: null,
-    api_football_fixture_id: null,
 
     kickoff: m.kickoff,
     venue: m.venue,
