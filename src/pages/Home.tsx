@@ -3,6 +3,7 @@ import type { League, Match } from '@/types';
 import { formatKickoff } from '@/data';
 import LeagueFilter from '@/components/LeagueFilter';
 import MatchCard from '@/components/MatchCard';
+import Standings from '@/components/Standings';
 
 interface HomeProps {
   leagues: League[];
@@ -62,6 +63,7 @@ export default function Home({
       </section>
 
       <div className="container-app space-y-12">
+        <Standings />
         {/* Error state */}
         {loadError && (
           <div className="flex flex-col items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-4 sm:flex-row sm:items-center">
