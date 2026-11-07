@@ -1,3 +1,5 @@
+
+import { useState } from 'react';
 import type { Team } from '@/types';
 
 interface TeamCrestProps {
@@ -12,10 +14,28 @@ const sizes = {
 };
 
 export default function TeamCrest({ team, size = 'md' }: TeamCrestProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (team.crestUrl && !imageFailed) {
+    return (
+      <div className={`flex items-center justify-center ${sizes[size]}`}>
+        <img
+          src={team.crestUrl}
+          alt={`${team.name} klubbmärke`}
+          className="h-full w-full object-contain"
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex items-center justify-center rounded-full font-bold ring-2 ring-white/10 ${sizes[size]}`}
-      style={{ background: `linear-gradient(135deg, ${team.color}, ${team.color}cc)` }}
+      style={{
+        background: `linear-gradient(135deg, ${team.color}, ${team.color}cc)`,
+      }}
     >
       <span className="text-ink-950 drop-shadow">{team.short}</span>
     </div>
