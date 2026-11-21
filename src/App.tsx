@@ -86,6 +86,14 @@ type ApiFootballStatistic = {
   }[];
 };
 
+function countMatchIds(matches: Match[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const match of matches) {
+    counts.set(match.id, (counts.get(match.id) ?? 0) + 1);
+  }
+  return counts;
+}
+
 function normalizeTeamName(name: string): string {
   return name
     .toLowerCase()
@@ -701,13 +709,7 @@ function AppInner() {
         // Ett kolliderande UI-ID får inte godtyckligt välja den
         // sista av flera gamla matcher. Bara entydiga ID:n kan
         // användas för direkt återkoppling till tidigare data.
-        const oldIdCounts = new Map<string, number>();
-        for (const previousMatch of previous) {
-          oldIdCounts.set(
-            previousMatch.id,
-            (oldIdCounts.get(previousMatch.id) ?? 0) + 1
-          );
-        }
+        const oldIdCounts = countMatchIds(previous);
         const oldById = new Map(
           previous
             .filter((previousMatch) =>
@@ -737,13 +739,7 @@ function AppInner() {
         // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
         // Kräver en entydig matchning för att inte blanda ihop matcher.
         const claimedIds = new Set<string>();
-        const visibleIdCounts = new Map<string, number>();
-        for (const visibleMatch of visibleMatches) {
-          visibleIdCounts.set(
-            visibleMatch.id,
-            (visibleIdCounts.get(visibleMatch.id) ?? 0) + 1
-          );
-        }
+        const visibleIdCounts = countMatchIds(visibleMatches);
 
         return visibleMatches.map((match) => {
           // Om det nya svaret innehåller samma UI-ID flera gånger,
