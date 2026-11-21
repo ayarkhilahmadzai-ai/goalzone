@@ -751,6 +751,9 @@ function AppInner() {
           }
 
           if (!old || claimedIds.has(old.id)) return match;
+          // Återanvänd aldrig en tidigare matchs ID över ligagränser,
+          // även om två källor råkar använda samma interna ID.
+          if (old.leagueId !== match.leagueId) return match;
           // Ett återanvänt UI-ID får inte koppla ihop två
           // olika matcher med olika verifierade fixture-ID:n.
           if (
