@@ -402,7 +402,13 @@ export default function MatchPage({
       <section className="mt-6 card p-4 sm:p-8" aria-labelledby="lineups-title">
         <h2 id="lineups-title" className="mb-5 font-display text-lg font-bold">Laguppställningar</h2>
         {!match.details?.lineups.home.length && !match.details?.lineups.away.length ? (
-          <p className="text-sm text-ink-400">Laguppställningar är ännu inte tillgängliga för den här matchen.</p>
+          <p className="text-sm text-ink-400" role="status">
+            {match.status === 'upcoming'
+              ? 'Laguppställningarna visas när de blir tillgängliga inför avspark.'
+              : detailsError
+                ? 'Laguppställningarna kunde inte uppdateras just nu. Försök igen senare.'
+                : 'Inga laguppställningar har rapporterats för den här matchen.'}
+          </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {(['home', 'away'] as const).map((side) => {
@@ -412,7 +418,11 @@ export default function MatchPage({
                 <div key={side} className="min-w-0">
                   <h3 className="mb-3 break-words text-base font-semibold text-ink-100">{team.name}</h3>
                   {players.length === 0 ? (
-                    <p className="text-sm text-ink-400">Ingen laguppställning tillgänglig.</p>
+                    <p className="text-sm text-ink-400">
+                      {detailsError
+                        ? 'Laguppställningen kunde inte uppdateras just nu.'
+                        : 'Ingen laguppställning har rapporterats för det här laget.'}
+                    </p>
                   ) : (
                     <div className="space-y-4">
                       {([false, true] as const).map((substitute) => {
