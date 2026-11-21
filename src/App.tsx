@@ -548,6 +548,8 @@ function AppInner() {
       }
 
       // Skydda matchlistan även om databassvaret är felaktigt.
+      const dbResponseMalformed = !dbResult.error &&
+        !Array.isArray(dbResult.data);
       const dbRows: MatchRow[] = Array.isArray(dbResult.data)
         ? dbResult.data
         : [];
@@ -568,6 +570,8 @@ function AppInner() {
 
       // Ett lyckat HTTP-svar garanterar inte att API:t skickar
       // en lista. Undvik att krascha om svaret är felaktigt.
+      const apiResponseMalformed = !footballResult.error &&
+        !Array.isArray(footballResult.data?.matches);
       const apiRows: MatchRow[] =
         !footballResult.error && Array.isArray(footballResult.data?.matches)
           ? footballResult.data.matches
@@ -662,7 +666,8 @@ function AppInner() {
         // saknas i det partiella svaret tills båda källorna fungerar igen.
         // Undvik att lägga till en gammal dubblett av en uppdaterad match.
         const visibleMatches = [...allMatches];
-        if (dbResult.error || footballResult.error) {
+        if (dbResult.error || footballResult.error ||
+            dbResponseMalformed || apiResponseMalformed) {
           for (const oldMatch of previous) {
             const alreadyPresent = visibleMatches.some((current) =>
               current.id === oldMatch.id ||
@@ -722,7 +727,10 @@ function AppInner() {
         });
       });
 
-      const partialFailure = Boolean(dbResult.error || footballResult.error);
+      const partialFailure = Boolean(
+        dbResult.error || footballResult.error ||
+        dbResponseMalformed || apiResponseMalformed
+      );
       setLoadError(partialFailure);
       if (!partialFailure) setLastSuccessfulFetch(Date.now());
     } catch (error) {
