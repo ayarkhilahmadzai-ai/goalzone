@@ -328,9 +328,10 @@ export default function MatchPage({
                       href={match.streamUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex h-16 w-16 items-center justify-center rounded-full bg-pitch-500/20 ring-2 ring-pitch-500/40 transition-all hover:bg-pitch-500/30 hover:ring-pitch-500/60"
+                      aria-label={`Öppna officiell livesändning för ${match.home.name} mot ${match.away.name} i en ny flik`}
+                      className="group flex h-16 w-16 items-center justify-center rounded-full bg-pitch-500/20 ring-2 ring-pitch-500/40 transition-all hover:bg-pitch-500/30 hover:ring-pitch-500/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pitch-400"
                     >
-                      <Play className="h-7 w-7 fill-pitch-400 text-pitch-400 transition-transform group-hover:scale-110" />
+                      <Play aria-hidden="true" className="h-7 w-7 fill-pitch-400 text-pitch-400 transition-transform group-hover:scale-110" />
                     </a>
 
                     <div>
