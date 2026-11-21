@@ -724,6 +724,10 @@ function AppInner() {
 
         return visibleMatches.map((match) => {
           let old = oldById.get(match.id);
+          // Även ett identiskt UI-ID kan peka på en annan match
+          // efter en uppdatering. Verifiera matchidentiteten innan
+          // tidigare detaljer eller UI-ID återanvänds.
+          if (old && !isSameMatch(old, match)) old = undefined;
 
           // API:ts fixture-ID är stabilare än lagnamn och avsparkstid.
           // Använd det först när exakt en tidigare match har samma ID.
