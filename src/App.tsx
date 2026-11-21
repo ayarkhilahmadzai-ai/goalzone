@@ -771,14 +771,10 @@ function AppInner() {
           details.lineups.away.length > 0 ||
           details.statistics.length > 0;
 
-        // Före avspark kan ett tomt svar vara normalt. Under och efter
-        // matchen räknas det som ett misslyckat detaljsvar, även om
-        // detta är första hämtningen. Behåll tidigare data orörd.
-        if (!hasDetailData && (
-          current.status === 'live' ||
-          current.status === 'finished' ||
-          current.details?.fetchedAt != null
-        )) {
+        // En match kan sakna statistik även under LIVE eller efter
+        // slutsignal. Ett tomt svar är bara ett uppdateringsfel om
+        // vi tidigare har fått riktiga detaljer som nu saknas.
+        if (!hasDetailData && current.details?.fetchedAt != null) {
           setDetailsErrorId(matchId);
           scheduleRetry();
           return;
