@@ -202,7 +202,7 @@ export default function MatchPage({
     <div className="container-app animate-fade-in py-6 sm:py-10">
       <button
         onClick={onBack}
-        className="mb-6 flex items-center gap-1.5 text-sm font-medium text-ink-300 transition-colors hover:text-white"
+        className="mb-6 flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-ink-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400"
       >
         <ArrowLeft className="h-4 w-4" />
         Tillbaka till matcher
