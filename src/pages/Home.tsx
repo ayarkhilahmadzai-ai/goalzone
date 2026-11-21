@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   CalendarDays,
@@ -57,6 +57,15 @@ export default function Home({
   onRetry,
 }: HomeProps) {
   const [activeSection, setActiveSection] = useState<Section>('home');
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const staleLiveData = lastSuccessfulFetch !== null &&
+    currentTime - lastSuccessfulFetch > 2 * 60 * 1000;
   const [search, setSearch] = useState('');
   const [showAllTeams, setShowAllTeams] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -232,7 +241,7 @@ export default function Home({
                 {lastSuccessfulFetch !== null && (
                   <p className="mb-3 text-xs text-ink-400" role="status">
                     Senaste lyckade hämtning: {new Date(lastSuccessfulFetch).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
-                    {Date.now() - lastSuccessfulFetch > 2 * 60 * 1000 && (
+                    {staleLiveData && (
                       <span className="ml-2 font-semibold text-amber-400">Data kan vara inaktuell</span>
                     )}
                   </p>
@@ -245,6 +254,12 @@ export default function Home({
                 {!loading && (!loadError || matches.length > 0) && (
                   <>
                     <LeagueFilter leagues={leagues} active={activeLeague} onChange={onLeagueChange} />
+
+                    {activeSection === 'live' && (loadError || staleLiveData) && liveMatches.length > 0 && (
+                      <div role="status" className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
+                        LIVE-resultaten kan vara fördröjda. Kontrollera senaste hämtningstid innan du litar på ställningen.
+                      </div>
+                    )}
 
                     {activeSection === 'live' && renderMatches(
                       liveMatches,
