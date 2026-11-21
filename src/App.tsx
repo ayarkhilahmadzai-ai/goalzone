@@ -277,48 +277,41 @@ function mapStatistics(
     return [];
   }
 
-  const awayValues = new Map<
-    string,
-    number
-  >();
+  // Samla statistik per lag. Om API:t ger olika värden för samma
+  // statistiktyp går det inte att avgöra vilket som är korrekt.
+  const collectValues = (statistics: ApiFootballStatistic['statistics']) => {
+    const values = new Map<string, { name: string; value: number | null }>();
 
-  for (const statistic of away.statistics ?? []) {
-    if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
+    for (const statistic of statistics ?? []) {
+      if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
+      const name = statistic.type.trim();
+      const key = name.toLocaleLowerCase('en');
+      const value = statisticNumber(statistic.value);
+      if (value === null) continue;
 
-    const value = statisticNumber(statistic.value);
-
-    if (value !== null) {
-      awayValues.set(statistic.type.trim().toLocaleLowerCase('en'), value);
+      const previous = values.get(key);
+      if (!previous) {
+        values.set(key, { name, value });
+      } else if (previous.value !== value) {
+        values.set(key, { name: previous.name, value: null });
+      }
     }
-  }
 
+    return values;
+  };
+
+  const homeValues = collectValues(home.statistics);
+  const awayValues = collectValues(away.statistics);
   const result: MatchStatistic[] = [];
-  const seenStatisticTypes = new Set<string>();
 
-  for (const statistic of home.statistics ?? []) {
-    if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
+  for (const [key, homeStat] of homeValues) {
+    const awayStat = awayValues.get(key);
+    if (homeStat.value === null || !awayStat || awayStat.value === null) continue;
 
-    const homeValue = statisticNumber(
-      statistic.value
-    );
-
-    const statisticKey = statistic.type.trim().toLocaleLowerCase('en');
-    if (seenStatisticTypes.has(statisticKey)) continue;
-
-    const awayValue = awayValues.get(statisticKey);
-
-    if (
-      homeValue === null ||
-      awayValue === undefined
-    ) {
-      continue;
-    }
-
-    seenStatisticTypes.add(statisticKey);
     result.push({
-      name: statistic.type.trim(),
-      home: homeValue,
-      away: awayValue,
+      name: homeStat.name,
+      home: homeStat.value,
+      away: awayStat.value,
     });
   }
 
