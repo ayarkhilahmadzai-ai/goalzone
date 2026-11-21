@@ -483,21 +483,54 @@ function AppInner() {
           })
         );
 
-      const allMatches = [
-        ...automaticMatches,
-      ];
+      // Undvik dubletter mellan manuella och automatiska matcher.
+      // Kräv samma liga, lag och nästan samma avsparkstid.
+      const normalizeTeam = (name: string) =>
+        name.toLowerCase().normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '');
+
+      const isSameMatch = (a: Match, b: Match) => {
+        if (a.leagueId !== b.leagueId) return false;
+        if (a.id === b.id) return true;
+
+        if (
+          a.apiFootballFixtureId != null &&
+          b.apiFootballFixtureId != null
+        ) {
+          return a.apiFootballFixtureId === b.apiFootballFixtureId;
+        }
+
+        const aTime = Date.parse(a.kickoff);
+        const bTime = Date.parse(b.kickoff);
+        return (
+          Number.isFinite(aTime) &&
+          Number.isFinite(bTime) &&
+          Math.abs(aTime - bTime) <= 15 * 60 * 1000 &&
+          normalizeTeam(a.home.name) === normalizeTeam(b.home.name) &&
+          normalizeTeam(a.away.name) === normalizeTeam(b.away.name)
+        );
+      };
+
+      const allMatches: Match[] = [...automaticMatches];
 
       for (const manualMatch of manualMatches) {
-        if (
-          !allMatches.some(
-            (m) =>
-              m.id === manualMatch.id
-          )
-        ) {
-          allMatches.push(
-            manualMatch
-          );
+        const existingIndex = allMatches.findIndex(
+          (match) => isSameMatch(match, manualMatch)
+        );
+
+        if (existingIndex === -1) {
+          allMatches.push(manualMatch);
+          continue;
         }
+
+        // API-källan behåller resultat och status.
+        // Manuellt angiven arena fyller endast tomt fält.
+        const automaticMatch = allMatches[existingIndex];
+        allMatches[existingIndex] = {
+          ...automaticMatch,
+          venue: automaticMatch.venue || manualMatch.venue,
+        };
       }
 
       // Behåll redan hämtade detaljer när samma match uppdateras.
