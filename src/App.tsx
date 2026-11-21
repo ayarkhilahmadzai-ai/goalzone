@@ -254,12 +254,21 @@ function mapStatistics(
   rawStatistics: ApiFootballStatistic[],
   match: Match
 ): MatchStatistic[] {
+  const matchingSide = (name: string): 'home' | 'away' | null => {
+    const homeMatches = sameTeam(name, match.home.name) ||
+      sameTeam(name, match.home.short);
+    const awayMatches = sameTeam(name, match.away.name) ||
+      sameTeam(name, match.away.short);
+    if (homeMatches === awayMatches) return null;
+    return homeMatches ? 'home' : 'away';
+  };
+
   const home = rawStatistics.find((entry) =>
-    sameTeam(entry.team?.name ?? '', match.home.name)
+    matchingSide(entry.team?.name ?? '') === 'home'
   );
 
   const away = rawStatistics.find((entry) =>
-    sameTeam(entry.team?.name ?? '', match.away.name)
+    matchingSide(entry.team?.name ?? '') === 'away'
   );
 
   if (!home || !away) {
