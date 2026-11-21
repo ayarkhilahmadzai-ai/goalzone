@@ -648,15 +648,9 @@ function AppInner() {
           return a.apiFootballFixtureId === b.apiFootballFixtureId;
         }
 
-        // Ett internt ID räcker bara som bevis när ingen av
-        // matcherna har ett verifierat fixture-ID. Annars måste
-        // liga, lag och avsparkstid också stämma överens.
-        if (
-          a.id === b.id &&
-          a.apiFootballFixtureId == null &&
-          b.apiFootballFixtureId == null
-        ) return true;
-
+        // Interna UI-ID:n kan återanvändas eller kollidera.
+        // Utan två verifierade fixture-ID:n krävs därför alltid
+        // samma lag och närliggande avsparkstid.
         const aTime = Date.parse(a.kickoff);
         const bTime = Date.parse(b.kickoff);
         const homeA = normalizeTeam(a.home.name);
