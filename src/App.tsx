@@ -801,6 +801,9 @@ function AppInner() {
           }
 
           if (!old || claimedIds.has(old.id)) return match;
+          // Kontrollera även här att reservmatchningen inte har valt
+          // ett tidigare UI-ID som tillhör flera gamla matcher.
+          if (oldIdCounts.get(old.id) !== 1) return match;
           // Återanvänd aldrig en tidigare matchs ID över ligagränser,
           // även om två källor råkar använda samma interna ID.
           if (old.leagueId !== match.leagueId) return match;
