@@ -84,10 +84,11 @@ function LiveMatchClock({ match }: { match: Match }) {
   const seconds = Math.min(59, elapsedSeconds);
   const secondsText = String(seconds).padStart(2, '0');
 
+  const wholeMinute = Math.floor(minute);
   const minuteText =
     extraTime > 0
-      ? `${minute}+${extraTime}`
-      : String(minute);
+      ? `${wholeMinute}+${extraTime}`
+      : String(wholeMinute);
 
   return (
     <span
