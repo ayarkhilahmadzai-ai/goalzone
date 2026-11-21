@@ -539,19 +539,47 @@ function AppInner() {
           previous.map((match) => [match.id, match])
         );
 
-        return allMatches.map((match) => {
-          const old = oldById.get(match.id);
+        // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
+        // Kräver en entydig matchning för att inte blanda ihop matcher.
+        const claimedIds = new Set<string>();
 
-          if (
-            !old ||
-            old.apiFootballFixtureId !==
-              match.apiFootballFixtureId
-          ) {
-            return match;
+        return allMatches.map((match) => {
+          let old = oldById.get(match.id);
+
+          if (!old) {
+            const candidates = previous.filter((candidate) => {
+              if (claimedIds.has(candidate.id)) return false;
+              if (candidate.leagueId !== match.leagueId) return false;
+              if (
+                normalizeTeam(candidate.home.name) !== normalizeTeam(match.home.name) ||
+                normalizeTeam(candidate.away.name) !== normalizeTeam(match.away.name)
+              ) return false;
+              if (
+                candidate.apiFootballFixtureId != null &&
+                match.apiFootballFixtureId != null &&
+                candidate.apiFootballFixtureId !== match.apiFootballFixtureId
+              ) return false;
+
+              const previousTime = Date.parse(candidate.kickoff);
+              const currentTime = Date.parse(match.kickoff);
+              return Number.isFinite(previousTime) &&
+                Number.isFinite(currentTime) &&
+                Math.abs(previousTime - currentTime) <= 24 * 60 * 60 * 1000;
+            });
+
+            if (candidates.length === 1) old = candidates[0];
+          }
+
+          if (!old || claimedIds.has(old.id)) return match;
+          claimedIds.add(old.id);
+
+          const stableMatch = { ...match, id: old.id };
+          if (old.apiFootballFixtureId !== match.apiFootballFixtureId) {
+            return stableMatch;
           }
 
           return {
-            ...match,
+            ...stableMatch,
             details: old.details,
             events: old.events,
           };
