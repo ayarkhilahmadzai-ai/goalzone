@@ -145,14 +145,19 @@ function mapEvents(
 
     let team: 'home' | 'away';
 
-    if (sameTeam(teamName, match.home.name)) {
-      team = 'home';
-    } else if (sameTeam(teamName, match.away.name)) {
-      team = 'away';
-    } else {
-      // Do not assign an event to the wrong team.
+    // API-namn kan skilja sig från visningsnamn. Använd även kortnamn,
+    // men bara när exakt ett av lagen matchar.
+    const homeMatches = sameTeam(teamName, match.home.name) ||
+      sameTeam(teamName, match.home.short);
+    const awayMatches = sameTeam(teamName, match.away.name) ||
+      sameTeam(teamName, match.away.short);
+
+    if (homeMatches === awayMatches) {
+      // Okänt eller tvetydigt lagnamn: gissa aldrig lag.
       continue;
     }
+
+    team = homeMatches ? 'home' : 'away';
 
     result.push({
       minute,
