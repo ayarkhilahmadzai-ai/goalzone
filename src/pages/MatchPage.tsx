@@ -172,6 +172,17 @@ export default function MatchPage({
 
   const hasEmbed = Boolean(match.embedUrl);
   const isLive = match.status === 'live';
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!isLive) return;
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [isLive]);
+
+  const detailsFetchedAt = match.details?.fetchedAt;
+  const detailsStale = isLive && detailsFetchedAt != null &&
+    currentTime - detailsFetchedAt > 2 * 60 * 1000;
 
   return (
     <div className="container-app animate-fade-in py-6 sm:py-10">
@@ -195,6 +206,16 @@ export default function MatchPage({
 
             <StatusBadge match={match} />
           </div>
+
+          {detailsFetchedAt != null && (
+            <p className="mt-2 text-xs text-ink-400" role="status">
+              Matchdetaljer senast hämtade: {new Date(detailsFetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+              {detailsStale && <span className="ml-2 font-semibold text-amber-400">Uppgifterna kan vara inaktuella</span>}
+            </p>
+          )}
+          {isLive && detailsFetchedAt == null && (
+            <p className="mt-2 text-xs text-amber-400" role="status">Ingen bekräftad uppdatering av matchdetaljer ännu.</p>
+          )}
 
           {isLive && typeof match.minute === 'number' && (
             <p className="mt-2 text-[10px] text-ink-500">
