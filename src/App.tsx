@@ -694,6 +694,7 @@ function AppInner() {
     let cancelled = false;
     let inFlight = false;
     let retryTimer: number | null = null;
+    let retryCount = 0;
 
     const matchId = selectedMatchId;
     const fixtureId = selectedFixtureId;
@@ -703,7 +704,8 @@ function AppInner() {
     // För icke-LIVE-matcher: ett begränsat återförsök efter fel.
     // LIVE-matcher använder redan sitt minutintervall.
     function scheduleRetry() {
-      if (cancelled || isLive || retryTimer !== null) return;
+      if (cancelled || isLive || retryTimer !== null || retryCount >= 1) return;
+      retryCount += 1;
       retryTimer = window.setTimeout(() => {
         retryTimer = null;
         void refreshDetails(true);
@@ -758,6 +760,7 @@ function AppInner() {
           window.clearTimeout(retryTimer);
           retryTimer = null;
         }
+        retryCount = 0;
         setDetailsErrorId(null);
 
         setMatches((previous) =>
