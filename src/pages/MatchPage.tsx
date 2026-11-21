@@ -175,10 +175,22 @@ export default function MatchPage({
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
+    // Räkna om direkt när besökaren öppnar en annan match.
+    setCurrentTime(Date.now());
     if (!isLive) return;
-    const timer = window.setInterval(() => setCurrentTime(Date.now()), 30_000);
-    return () => window.clearInterval(timer);
-  }, [isLive]);
+
+    const updateTime = () => {
+      if (document.visibilityState === 'visible') {
+        setCurrentTime(Date.now());
+      }
+    };
+    const timer = window.setInterval(updateTime, 30_000);
+    document.addEventListener('visibilitychange', updateTime);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', updateTime);
+    };
+  }, [match.id, isLive]);
 
   const detailsFetchedAt = match.details?.fetchedAt;
   const detailsStale = isLive && detailsFetchedAt != null &&
