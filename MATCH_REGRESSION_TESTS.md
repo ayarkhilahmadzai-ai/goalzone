@@ -1,6 +1,12 @@
 # GoalZone – regressionstester för matchlistan
 
-Det här dokumentet beskriver testfall som behöver verifieras innan ändringarna i `fix/match-deduplication` kan slås ihop med `main`. Att en GitHub Actions-körning är grön bevisar inte att dessa beteenden har testats.
+Det här dokumentet beskriver testfall som behöver verifieras innan ändringarna i `fix/match-deduplication` kan slås ihop med `main`. Automatiska enhetstester täcker delar av matchidentiteten, men checklistan nedan avser fortfarande manuell verifiering i gränssnittet med realistiska API-svar.
+
+## Automatiskt verifierat
+
+- [x] 15 matchidentitets- och regressionsfall passerade i GitHub Actions #129.
+- [x] ESLint och TypeScript passerade i GitHub Actions #129.
+- [ ] Produktionsbygget i #129 inväntar slutresultat.
 
 ## Matchidentitet
 
@@ -24,10 +30,10 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Validering
 
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm run typecheck` (GitHub Actions #129)
+- [x] `npm run lint` (GitHub Actions #129)
 - [ ] `npm run build`
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
-**Status:** Testfall dokumenterade, inte markerade som genomförda.
+**Status:** Automatiska tester och kodkontroller verifierade enligt ovan. Manuella gränssnittstester är inte genomförda.
