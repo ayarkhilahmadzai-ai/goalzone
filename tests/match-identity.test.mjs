@@ -193,3 +193,23 @@ test('upprepade partiella API-fel skapar inte nya dubbletter', () => {
   const recovered = preserve([match(401)], second, false, isSameMatch);
   assert.deepEqual(recovered.map((item) => item.apiFootballFixtureId), [401]);
 });
+
+test('unika match-ID:n och referenser bevaras utan onödiga objektbyten', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function ensureUniqueMatchIds(');
+  const end = app.indexOf('function countMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('matches: Match[]', 'matches')
+    .replace('): Match[]', ')')
+    .replace('new Set<string>()', 'new Set()');
+  const ensureUniqueMatchIds = new Function(extracted + '\nreturn ensureUniqueMatchIds;')();
+  const original = [
+    { id: 'fixture-501', apiFootballFixtureId: 501, details: { venue: 'A' } },
+    { id: 'fixture-502', apiFootballFixtureId: 502, details: { venue: 'B' } },
+  ];
+  const result = ensureUniqueMatchIds(original);
+  assert.deepEqual(result.map((item) => item.id), ['fixture-501', 'fixture-502']);
+  assert.strictEqual(result[0], original[0]);
+  assert.strictEqual(result[1], original[1]);
+});
