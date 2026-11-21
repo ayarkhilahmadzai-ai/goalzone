@@ -85,3 +85,24 @@ test('räknar dubbla UI-ID:n i gamla och nya matchlistor', () => {
   assert.equal(counts.get('unique'), 1);
   assert.equal(counts.get('missing'), undefined);
 });
+
+test('partiellt API-fel behåller saknade matcher utan att skapa dubbletter', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function preserveMatchesOnPartialFailure(');
+  const end = app.indexOf('function countMatchIds(', start);
+  assert.ok(start !== -1 && end > start, 'Kunde inte hitta reservlogiken');
+  const extracted = app.slice(start, end)
+    .replace('current: Match[]', 'current')
+    .replace('previous: Match[]', 'previous')
+    .replace('partialFailure: boolean', 'partialFailure')
+    .replace('isSameMatch: (a: Match, b: Match) => boolean', 'isSameMatch')
+    .replace('): Match[]', ')');
+  const preserve = new Function(extracted + '\nreturn preserveMatchesOnPartialFailure;')();
+  const current = [match(101)];
+  const previous = [match(101), match(102), match(102)];
+  const partial = preserve(current, previous, true, isSameMatch);
+  assert.equal(partial.length, 2);
+  assert.deepEqual(partial.map((item) => item.apiFootballFixtureId), [101, 102]);
+  assert.equal(preserve(current, previous, false, isSameMatch).length, 1);
+  assert.equal(current.length, 1, 'Indatalistan ska inte ändras');
+});
