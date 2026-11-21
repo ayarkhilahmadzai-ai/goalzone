@@ -145,7 +145,7 @@ function mapEvents(
 
     const minute = event.time?.elapsed;
 
-    if (typeof minute !== 'number' || !Number.isFinite(minute) || minute < 0) continue;
+    if (typeof minute !== 'number' || !Number.isSafeInteger(minute) || minute < 0) continue;
 
     const teamName = event.team?.name ?? '';
 
@@ -198,7 +198,9 @@ function mapPlayers(
         number: typeof player.number === 'number' && Number.isSafeInteger(player.number) && player.number > 0
           ? player.number
           : undefined,
-        position: player.pos ?? undefined,
+        position: typeof player.pos === 'string' && player.pos.trim()
+          ? player.pos.trim()
+          : undefined,
         substitute,
       };
     });
