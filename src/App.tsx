@@ -751,6 +751,13 @@ function AppInner() {
           }
 
           if (!old || claimedIds.has(old.id)) return match;
+          // Ett återanvänt UI-ID får inte koppla ihop två
+          // olika matcher med olika verifierade fixture-ID:n.
+          if (
+            old.apiFootballFixtureId != null &&
+            match.apiFootballFixtureId != null &&
+            old.apiFootballFixtureId !== match.apiFootballFixtureId
+          ) return match;
           claimedIds.add(old.id);
 
           const stableMatch = { ...match, id: old.id };
