@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   CalendarDays,
   Heart,
+  Home as HomeIcon,
   Info,
   Radio,
   Search,
@@ -189,7 +190,7 @@ export default function Home({
         </div>
       </section>
 
-      <main className="container-app space-y-8 pb-12">
+      <main className="container-app space-y-8 pb-28 sm:pb-12">
         {activeSection === 'home' ? (
           <section aria-label="Explore GoalZone">
             <h2 className="mb-5 font-display text-2xl font-bold">Explore GoalZone</h2>
@@ -360,6 +361,28 @@ export default function Home({
           </p>
         </div>
       </main>
+
+      <nav aria-label="Mobilnavigering" className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-ink-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
+        <div className="grid grid-cols-4">
+          {([
+            { id: 'home', label: 'Hem', icon: HomeIcon },
+            { id: 'live', label: 'LIVE', icon: Radio },
+            { id: 'standings', label: 'Ligor', icon: Trophy },
+            { id: 'favorites', label: 'Favoriter', icon: Heart },
+          ] as const).map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => openSection(id)}
+              aria-current={activeSection === id ? 'page' : undefined}
+              className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${activeSection === id ? 'text-pitch-400' : 'text-ink-400'}`}
+            >
+              <Icon className="h-5 w-5" aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
