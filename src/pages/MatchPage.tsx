@@ -409,7 +409,10 @@ export default function MatchPage({
       {/* Matchstatistik från redan hämtade matchdetaljer. */}
       <section className="mt-6 card p-4 sm:p-8" aria-labelledby="statistics-title">
         <h2 id="statistics-title" className="mb-5 font-display text-lg font-bold">Matchstatistik</h2>
-        {!match.details?.statistics.length ? (
+        {!match.details?.statistics.some((stat) =>
+          Number.isFinite(stat.home) && Number.isFinite(stat.away) &&
+          stat.home >= 0 && stat.away >= 0
+        ) ? (
           <p className="text-sm text-ink-400">Ingen matchstatistik finns tillgänglig ännu.</p>
         ) : (
           <div className="space-y-5">
@@ -417,11 +420,14 @@ export default function MatchPage({
               <span className="min-w-0 flex-1 break-words">{match.home.name}</span>
               <span className="min-w-0 flex-1 break-words text-right">{match.away.name}</span>
             </div>
-            {match.details.statistics.map((stat, index) => {
-              const home = Number.isFinite(stat.home) ? Math.max(0, stat.home) : 0;
-              const away = Number.isFinite(stat.away) ? Math.max(0, stat.away) : 0;
+            {match.details.statistics.filter((stat) =>
+              Number.isFinite(stat.home) && Number.isFinite(stat.away) &&
+              stat.home >= 0 && stat.away >= 0
+            ).map((stat, index) => {
+              const home = stat.home;
+              const away = stat.away;
               const total = home + away;
-              const homePercent = total > 0 ? (home / total) * 100 : 50;
+              const homePercent = total > 0 ? (home / total) * 100 : 0;
               return (
                 <div key={`${stat.name}-${index}`}>
                   <div className="mb-2 flex items-center justify-between gap-2 text-sm">
@@ -430,8 +436,12 @@ export default function MatchPage({
                     <span className="shrink-0 font-bold tabular-nums text-ink-100">{stat.away}</span>
                   </div>
                   <div className="flex h-2 overflow-hidden rounded-full bg-ink-700" aria-hidden="true">
-                    <div className="h-full bg-pitch-400" style={{ width: `${homePercent}%` }} />
-                    <div className="h-full bg-ink-400" style={{ width: `${100 - homePercent}%` }} />
+                    {total > 0 && (
+                      <>
+                        <div className="h-full bg-pitch-400" style={{ width: `${homePercent}%` }} />
+                        <div className="h-full bg-ink-400" style={{ width: `${100 - homePercent}%` }} />
+                      </>
+                    )}
                   </div>
                 </div>
               );
