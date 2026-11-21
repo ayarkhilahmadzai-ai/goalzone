@@ -627,12 +627,16 @@ function AppInner() {
 
         const aTime = Date.parse(a.kickoff);
         const bTime = Date.parse(b.kickoff);
+        const homeA = normalizeTeam(a.home.name);
+        const homeB = normalizeTeam(b.home.name);
+        const awayA = normalizeTeam(a.away.name);
+        const awayB = normalizeTeam(b.away.name);
         return (
           Number.isFinite(aTime) &&
           Number.isFinite(bTime) &&
           Math.abs(aTime - bTime) <= 15 * 60 * 1000 &&
-          normalizeTeam(a.home.name) === normalizeTeam(b.home.name) &&
-          normalizeTeam(a.away.name) === normalizeTeam(b.away.name)
+          homeA.length > 0 && awayA.length > 0 &&
+          homeA === homeB && awayA === awayB
         );
       };
 
