@@ -535,15 +535,15 @@ export default function MatchPage({
                   {eventIcon(e.type)}
                 </div>
 
-                <span className="w-10 shrink-0 text-xs font-bold tabular-nums text-ink-400">
+                <span aria-hidden="true" className="w-10 shrink-0 text-xs font-bold tabular-nums text-ink-400">
                   {e.minute}&apos;
                 </span>
 
-                <span className="min-w-0 break-words text-sm text-ink-100">
+                <span aria-hidden="true" className="min-w-0 break-words text-sm text-ink-100">
                   {eventLabel(e)}
                 </span>
 
-                <span className="col-start-2 min-w-0 break-words text-xs text-ink-500 sm:col-start-3 sm:text-right">
+                <span aria-hidden="true" className="col-start-2 min-w-0 break-words text-xs text-ink-500 sm:col-start-3 sm:text-right">
                   {e.team === 'home'
                     ? match.home.short
                     : match.away.short}
