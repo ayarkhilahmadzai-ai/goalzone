@@ -510,15 +510,16 @@ export default function MatchPage({
               : 'Inga matchhändelser har registrerats.'}
           </p>
         ) : (
-          <div className="relative space-y-3">
-            <div className="absolute left-4 top-2 bottom-2 w-px bg-white/5" />
+          <ol className="relative space-y-3" aria-label="Matchhändelser i tidsordning">
+            <div aria-hidden="true" className="absolute left-4 top-2 bottom-2 w-px bg-white/5" />
 
             {sortedEvents.map(({ event: e, index }) => (
-              <div
+              <li
                 key={`${e.minute}-${e.type}-${e.team}-${e.player}-${index}`}
+                aria-label={`${e.minute} minuten, ${eventLabel(e)}, ${e.team === 'home' ? match.home.name : match.away.name}`}
                 className="relative grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-x-2 gap-y-1 pl-9 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:gap-x-3 sm:pl-10"
               >
-                <div className="absolute left-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-900 ring-2 ring-white/10">
+                <div aria-hidden="true" className="absolute left-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-900 ring-2 ring-white/10">
                   {eventIcon(e.type)}
                 </div>
 
@@ -535,9 +536,9 @@ export default function MatchPage({
                     ? match.home.short
                     : match.away.short}
                 </span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         )}
       </div>
     </div>
