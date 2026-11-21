@@ -435,7 +435,7 @@ export default function MatchPage({
                             </h4>
                             <ul className="space-y-1">
                               {group.map((player) => (
-                                <li key={player.id} aria-label={`${player.name}${player.number != null ? `, tröjnummer ${player.number}` : ", tröjnummer saknas"}${player.position ? `, position ${player.position}` : ""}`} className="grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-lg bg-white/5 px-3 py-2 text-sm sm:grid-cols-[1.75rem_minmax(0,1fr)_auto]">
+                                <li key={player.id} aria-label={`${player.name}${player.number != null ? `, tröjnummer ${player.number}` : ", tröjnummer saknas"}${player.position ? `, position ${player.position}` : ", position saknas"}`} className="grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-lg bg-white/5 px-3 py-2 text-sm sm:grid-cols-[1.75rem_minmax(0,1fr)_auto]">
                                   <span className="w-7 shrink-0 text-right font-semibold tabular-nums text-pitch-400">
                                     {player.number ?? '–'}
                                   </span>
