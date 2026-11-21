@@ -766,6 +766,18 @@ function AppInner() {
           scheduleRetry();
           return;
         }
+        const hasDetailData = details.events.length > 0 ||
+          details.lineups.home.length > 0 ||
+          details.lineups.away.length > 0 ||
+          details.statistics.length > 0;
+
+        // Ett tomt svar kan vara normalt före avspark, men ska inte
+        // markeras som en lyckad uppdatering av redan hämtad data.
+        if (!hasDetailData && current.details?.fetchedAt != null) {
+          setDetailsErrorId(matchId);
+          scheduleRetry();
+          return;
+        }
         if (retryTimer !== null) {
           window.clearTimeout(retryTimer);
           retryTimer = null;
@@ -784,12 +796,9 @@ function AppInner() {
                   const previousDetails = match.details;
                   const mergedDetails: MatchDetails = {
                     ...details,
-                    fetchedAt: details.events.length > 0 ||
-                      details.lineups.home.length > 0 ||
-                      details.lineups.away.length > 0 ||
-                      details.statistics.length > 0
-                        ? Date.now()
-                        : previousDetails?.fetchedAt,
+                    fetchedAt: hasDetailData
+                      ? Date.now()
+                      : previousDetails?.fetchedAt,
                     events: details.events.length > 0
                       ? details.events
                       : previousDetails?.events ?? details.events,
