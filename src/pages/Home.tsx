@@ -212,7 +212,7 @@ export default function Home({
                 {loadError && (
                   <div className="flex flex-wrap items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
                     <AlertCircle className="h-5 w-5 text-red-400" />
-                    <span className="flex-1 text-sm text-red-300">Could not load matches right now.</span>
+                    <span className="flex-1 text-sm text-red-300">Could not refresh matches. Showing the last available data when possible.</span>
                     <button type="button" onClick={onRetry} className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300">Retry</button>
                   </div>
                 )}
@@ -221,7 +221,7 @@ export default function Home({
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-pitch-500/30 border-t-pitch-500" />
                   </div>
                 )}
-                {!loading && !loadError && (
+                {!loading && (!loadError || matches.length > 0) && (
                   <>
                     <LeagueFilter leagues={leagues} active={activeLeague} onChange={onLeagueChange} />
 
