@@ -242,10 +242,12 @@ function statisticNumber(
     return null;
   }
 
-  const normalized = value.replace('%', '').trim();
-  if (!normalized) return null;
+  const normalized = value.trim();
+  // Tillåt vanliga numeriska värden och procentsatser, men inte
+  // godtyckliga strängar där Number() kan ge ett oväntat resultat.
+  if (!/^\d+(?:\.\d+)?%?$/.test(normalized)) return null;
 
-  const parsed = Number(normalized);
+  const parsed = Number(normalized.replace(/%$/, ''));
 
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
