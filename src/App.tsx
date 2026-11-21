@@ -600,6 +600,11 @@ function AppInner() {
         typeof m.away_score === 'number' && Number.isSafeInteger(m.away_score) && m.away_score >= 0
       );
 
+      // Ett delvis skadat svar ska inte radera tidigare matcher
+      // som filtrerades bort från den aktuella uppdateringen.
+      const dbRowsIncomplete = dbRows.length > manualMatches.length;
+      const apiRowsIncomplete = apiRows.length > validApiRows.length;
+
       const automaticMatches: Match[] =
         validApiRows.map((m) =>
           rowToMatch({
@@ -698,7 +703,8 @@ function AppInner() {
         // Undvik att lägga till en gammal dubblett av en uppdaterad match.
         const visibleMatches = [...allMatches];
         if (dbResult.error || footballResult.error ||
-            dbResponseMalformed || apiResponseMalformed) {
+            dbResponseMalformed || apiResponseMalformed ||
+            dbRowsIncomplete || apiRowsIncomplete) {
           for (const oldMatch of previous) {
             const alreadyPresent = visibleMatches.some((current) =>
               current.id === oldMatch.id ||
@@ -783,7 +789,8 @@ function AppInner() {
 
       const partialFailure = Boolean(
         dbResult.error || footballResult.error ||
-        dbResponseMalformed || apiResponseMalformed
+        dbResponseMalformed || apiResponseMalformed ||
+        dbRowsIncomplete || apiRowsIncomplete
       );
       setLoadError(partialFailure);
       if (!partialFailure) setLastSuccessfulFetch(Date.now());
