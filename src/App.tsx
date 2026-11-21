@@ -558,8 +558,22 @@ function AppInner() {
           ? footballResult.data.matches
           : [];
 
+      // Hoppa över enskilda trasiga API-poster i stället för att
+      // låta dem avbryta hela matchlistan.
+      const validApiRows = apiRows.filter((m) =>
+        m !== null &&
+        typeof m === 'object' &&
+        typeof m.home_team === 'string' && m.home_team.trim().length > 0 &&
+        typeof m.away_team === 'string' && m.away_team.trim().length > 0 &&
+        typeof m.home_short === 'string' &&
+        typeof m.away_short === 'string' &&
+        typeof m.league_id === 'string' &&
+        typeof m.kickoff === 'string' &&
+        Number.isFinite(Date.parse(m.kickoff))
+      );
+
       const automaticMatches: Match[] =
-        apiRows.map((m) =>
+        validApiRows.map((m) =>
           rowToMatch({
             ...m,
             id:
