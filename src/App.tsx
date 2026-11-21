@@ -823,6 +823,15 @@ function AppInner() {
 
         if (!cancelled) {
           setDetailsLoadingId(null);
+          // Ett återförsök som väntade på ett långsamt anrop
+          // ska inte fastna när fliken redan är synlig.
+          if (retryPending && document.visibilityState === 'visible') {
+            retryPending = false;
+            retryTimer = window.setTimeout(() => {
+              retryTimer = null;
+              void refreshDetails(true);
+            }, 1000);
+          }
         }
       }
     }
