@@ -4,9 +4,9 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Automatiskt verifierat
 
-- [x] 16 matchidentitets- och regressionsfall passerade i GitHub Actions #132.
-- [x] ESLint och TypeScript passerade i GitHub Actions #132.
-- [x] Produktionsbygget passerade i GitHub Actions #132.
+- [x] 16 matchidentitets- och regressionsfall passerade i GitHub Actions #133.
+- [x] ESLint och TypeScript passerade i GitHub Actions #133.
+- [x] Produktionsbygget passerade i GitHub Actions #133.
 
 ## Praktisk manuell testprocedur
 
@@ -20,6 +20,22 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 8. Dokumentera för varje scenario: testdata/fixture-ID:n, observerat antal matchkort, rätt/fel detaljvy, konsolfel och resultat. Markera checklistan först när scenariot faktiskt har körts.
 
 **Begränsning:** GitHub Actions kör enhetskontroller och produktionsbygge, inte dessa webbläsarscenarier. Gränssnittstesterna är därför fortfarande öppna.
+
+## Protokoll för webbläsarverifiering
+
+Fyll i tabellen först när respektive scenario faktiskt har körts i en separat testmiljö. Lämna testdata anonymiserade; skriv aldrig API-nycklar eller autentiseringstoken i protokollet.
+
+| Scenario | Förväntat resultat | Utfall | Bevis/anteckning |
+| --- | --- | --- | --- |
+| Olika fixture-ID, samma lag/tid | Två separata matchkort och rätt detaljvy | Ej kört | – |
+| Samma fixture-ID, ändrad tid | Ett uppdaterat matchkort | Ej kört | – |
+| Samma UI-ID, olika ligor | Ingen förväxling av matcher | Ej kört | – |
+| Kolliderande UI-ID | Inga dubbla React-nycklar eller fel detaljer | Ej kört | – |
+| Partiellt API-fel | Tidigare saknade matcher behålls utan dubbletter | Ej kört | – |
+| API återhämtar sig | Inga kvarhängande dubbletter | Ej kört | – |
+| Manuell match och API-match | En match, med korrekt arena och resultat | Ej kört | – |
+
+**Miljö:** Ej angiven. **Webbläsare/version:** Ej angiven. **Testdatum:** Ej angivet. **Testansvarig:** Ej angiven.
 
 ## Matchidentitet
 
