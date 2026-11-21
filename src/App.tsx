@@ -172,7 +172,7 @@ function mapPlayers(
   substitute: boolean
 ): MatchPlayer[] {
   return players
-    .filter((entry) => Boolean(entry.player?.name))
+    .filter((entry) => typeof entry.player?.name === 'string' && entry.player.name.trim().length > 0)
     .map((entry, index) => {
       const player = entry.player!;
 
@@ -181,7 +181,7 @@ function mapPlayers(
           player.id ??
             `${substitute ? 'sub' : 'start'}-${index}`
         ),
-        name: player.name!,
+        name: player.name!.trim(),
         number: typeof player.number === 'number' && Number.isSafeInteger(player.number) && player.number > 0
           ? player.number
           : undefined,
