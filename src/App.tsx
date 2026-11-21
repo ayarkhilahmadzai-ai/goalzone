@@ -549,11 +549,28 @@ function AppInner() {
           previous.map((match) => [match.id, match])
         );
 
+        // Om bara en källa misslyckas: behåll tidigare matcher som
+        // saknas i det partiella svaret tills båda källorna fungerar igen.
+        // Undvik att lägga till en gammal dubblett av en uppdaterad match.
+        const visibleMatches = [...allMatches];
+        if (dbResult.error || footballResult.error) {
+          for (const oldMatch of previous) {
+            const alreadyPresent = visibleMatches.some((current) =>
+              current.id === oldMatch.id ||
+              isSameMatch(current, oldMatch) ||
+              (current.leagueId === oldMatch.leagueId &&
+                normalizeTeam(current.home.name) === normalizeTeam(oldMatch.home.name) &&
+                normalizeTeam(current.away.name) === normalizeTeam(oldMatch.away.name))
+            );
+            if (!alreadyPresent) visibleMatches.push(oldMatch);
+          }
+        }
+
         // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
         // Kräver en entydig matchning för att inte blanda ihop matcher.
         const claimedIds = new Set<string>();
 
-        return allMatches.map((match) => {
+        return visibleMatches.map((match) => {
           let old = oldById.get(match.id);
 
           if (!old) {
@@ -596,8 +613,9 @@ function AppInner() {
         });
       });
 
-      setLoadError(false);
-      setLastSuccessfulFetch(Date.now());
+      const partialFailure = Boolean(dbResult.error || footballResult.error);
+      setLoadError(partialFailure);
+      if (!partialFailure) setLastSuccessfulFetch(Date.now());
     } catch (error) {
       console.error(
         'Error loading matches:',
