@@ -67,3 +67,21 @@ test('hemma- och bortalag får inte byta plats vid reservmatchning', () => {
 test('diakritiska tecken och skiljetecken normaliseras konsekvent', () => {
   assert.equal(isSameMatch(match(null, undefined, 'Málaga FC'), match(null, undefined, 'Malaga F.C.')), true);
 });
+
+test('räknar dubbla UI-ID:n i gamla och nya matchlistor', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const helperStart = app.indexOf('function countMatchIds(matches: Match[]): Map<string, number> {');
+  const helperEnd = app.indexOf('function normalizeTeamName(', helperStart);
+  assert.ok(helperStart !== -1 && helperEnd > helperStart, 'Kunde inte hitta ID-räknaren');
+  const helper = app.slice(helperStart, helperEnd)
+    .replace('matches: Match[]', 'matches')
+    .replace('): Map<string, number>', ')')
+    .replace('new Map<string, number>()', 'new Map()');
+  const countMatchIds = new Function(helper + '\nreturn countMatchIds;')();
+  const counts = countMatchIds([
+    { id: 'duplicate' }, { id: 'unique' }, { id: 'duplicate' },
+  ]);
+  assert.equal(counts.get('duplicate'), 2);
+  assert.equal(counts.get('unique'), 1);
+  assert.equal(counts.get('missing'), undefined);
+});
