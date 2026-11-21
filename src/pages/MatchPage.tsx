@@ -89,7 +89,7 @@ function LiveMatchClock({ match }: { match: Match }) {
   return (
     <span
       className="tabular-nums"
-      title="Estimated seconds since the latest match update. Not an official match clock."
+      title="Uppskattade sekunder sedan senaste matchuppdateringen. Inte en officiell matchklocka."
       aria-label={`LIVE-match, minut ${minuteText}, cirka ${seconds} sekunder`}
     >
       {minuteText}:{secondsText}
@@ -100,8 +100,8 @@ function LiveMatchClock({ match }: { match: Match }) {
 function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
-      <div className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
-        <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
+      <div aria-label={typeof match.minute === 'number' ? undefined : 'Matchen pågår, matchminut saknas'} className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
+        <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
         LIVE{' '}
         {typeof match.minute === 'number' ? (
           <LiveMatchClock match={match} />
