@@ -638,14 +638,17 @@ function AppInner() {
 
       const isSameMatch = (a: Match, b: Match) => {
         if (a.leagueId !== b.leagueId) return false;
-        if (a.id === b.id) return true;
 
+        // Två verifierade fixture-ID:n får aldrig förväxlas,
+        // även om interna UI-ID:n råkar vara identiska.
         if (
           a.apiFootballFixtureId != null &&
           b.apiFootballFixtureId != null
         ) {
           return a.apiFootballFixtureId === b.apiFootballFixtureId;
         }
+
+        if (a.id === b.id) return true;
 
         const aTime = Date.parse(a.kickoff);
         const bTime = Date.parse(b.kickoff);
