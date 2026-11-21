@@ -695,6 +695,7 @@ function AppInner() {
     let inFlight = false;
     let retryTimer: number | null = null;
     let retryCount = 0;
+    let retryPending = false;
 
     const matchId = selectedMatchId;
     const fixtureId = selectedFixtureId;
@@ -708,6 +709,10 @@ function AppInner() {
       retryCount += 1;
       retryTimer = window.setTimeout(() => {
         retryTimer = null;
+        if (document.visibilityState !== 'visible' || inFlight) {
+          retryPending = true;
+          return;
+        }
         void refreshDetails(true);
       }, 30_000);
     }
@@ -761,6 +766,7 @@ function AppInner() {
           retryTimer = null;
         }
         retryCount = 0;
+        retryPending = false;
         setDetailsErrorId(null);
 
         setMatches((previous) =>
@@ -833,10 +839,11 @@ function AppInner() {
       : null;
 
     const onVisibilityChange = () => {
-      if (
-        document.visibilityState === 'visible' &&
-        isLive
-      ) {
+      if (document.visibilityState !== 'visible') return;
+      if (retryPending) {
+        retryPending = false;
+        void refreshDetails(true);
+      } else if (isLive) {
         void refreshDetails(true);
       }
     };
