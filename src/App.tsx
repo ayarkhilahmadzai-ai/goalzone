@@ -222,10 +222,22 @@ function mapLineups(
 
     side = homeMatches ? 'home' : 'away';
 
-    result[side] = [
+    const players = [
       ...mapPlayers(lineup.startXI ?? [], false),
       ...mapPlayers(lineup.substitutes ?? [], true),
     ];
+    const seenPlayers = new Set<string>();
+
+    result[side] = players.filter((player) => {
+      // API-id används när det finns; annars spelarens namn.
+      // Behåll den första posten om samma spelare förekommer flera gånger.
+      const key = /^\d+$/.test(player.id)
+        ? `id:${player.id}`
+        : `name:${player.name.trim().toLocaleLowerCase('sv')}`;
+      if (seenPlayers.has(key)) return false;
+      seenPlayers.add(key);
+      return true;
+    });
   }
 
   return result;
