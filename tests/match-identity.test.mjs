@@ -43,3 +43,27 @@ test('ogiltiga normaliserade lagnamn ger aldrig en säker match', () => {
 test('kolliderande UI-ID räcker inte när fixture-ID saknas', () => {
   assert.equal(isSameMatch(match(101), match(null, '2026-11-23T18:00:00Z')), false);
 });
+
+test('matchning är symmetrisk oavsett vilken källa som jämförs först', () => {
+  const manual = match(null);
+  const automatic = match(101, '2026-11-22T18:10:00Z');
+  assert.equal(isSameMatch(manual, automatic), true);
+  assert.equal(isSameMatch(automatic, manual), true);
+});
+
+test('tidsgränsen är inkluderande vid exakt 15 minuter', () => {
+  assert.equal(isSameMatch(match(null), match(null, '2026-11-22T18:15:00Z')), true);
+  assert.equal(isSameMatch(match(null), match(null, '2026-11-22T18:15:01Z')), false);
+});
+
+test('ogiltiga avsparkstider ger ingen reservmatchning', () => {
+  assert.equal(isSameMatch(match(null, 'not-a-date'), match(null)), false);
+});
+
+test('hemma- och bortalag får inte byta plats vid reservmatchning', () => {
+  assert.equal(isSameMatch(match(null), match(null, undefined, 'Beta FC', 'Alpha FC')), false);
+});
+
+test('diakritiska tecken och skiljetecken normaliseras konsekvent', () => {
+  assert.equal(isSameMatch(match(null, undefined, 'Málaga FC'), match(null, undefined, 'Malaga F.C.')), true);
+});
