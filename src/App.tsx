@@ -648,7 +648,14 @@ function AppInner() {
           return a.apiFootballFixtureId === b.apiFootballFixtureId;
         }
 
-        if (a.id === b.id) return true;
+        // Ett internt ID räcker bara som bevis när ingen av
+        // matcherna har ett verifierat fixture-ID. Annars måste
+        // liga, lag och avsparkstid också stämma överens.
+        if (
+          a.id === b.id &&
+          a.apiFootballFixtureId == null &&
+          b.apiFootballFixtureId == null
+        ) return true;
 
         const aTime = Date.parse(a.kickoff);
         const bTime = Date.parse(b.kickoff);
