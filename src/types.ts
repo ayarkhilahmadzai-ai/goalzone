@@ -33,6 +33,7 @@ export interface MatchStatistic {
 export interface MatchDetails {
   source: 'thesportsdb' | 'api-football';
   eventId: string;
+  fetchedAt?: number;
   lineups: {
     home: MatchPlayer[];
     away: MatchPlayer[];
