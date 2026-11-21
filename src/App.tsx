@@ -286,7 +286,7 @@ function mapStatistics(
     const value = statisticNumber(statistic.value);
 
     if (value !== null) {
-      awayValues.set(statistic.type.trim(), value);
+      awayValues.set(statistic.type.trim().toLocaleLowerCase('en'), value);
     }
   }
 
@@ -300,7 +300,7 @@ function mapStatistics(
     );
 
     const awayValue = awayValues.get(
-      statistic.type.trim()
+      statistic.type.trim().toLocaleLowerCase('en')
     );
 
     if (
