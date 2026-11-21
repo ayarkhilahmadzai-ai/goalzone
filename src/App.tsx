@@ -139,7 +139,7 @@ function mapEvents(
 
     const minute = event.time?.elapsed;
 
-    if (typeof minute !== 'number') continue;
+    if (typeof minute !== 'number' || !Number.isFinite(minute) || minute < 0) continue;
 
     const teamName = event.team?.name ?? '';
 
@@ -231,9 +231,10 @@ function statisticNumber(
     return null;
   }
 
-  const parsed = Number(
-    value.replace('%', '').trim()
-  );
+  const normalized = value.replace('%', '').trim();
+  if (!normalized) return null;
+
+  const parsed = Number(normalized);
 
   return Number.isFinite(parsed) ? parsed : null;
 }
