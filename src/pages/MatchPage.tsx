@@ -66,7 +66,7 @@ function LiveMatchClock({ match }: { match: Match }) {
   if (
     match.status !== 'live' ||
     typeof minute !== 'number' ||
-    !Number.isFinite(minute)
+    (!Number.isFinite(minute) || minute < 0)
   ) {
     return null;
   }
@@ -101,10 +101,10 @@ function LiveMatchClock({ match }: { match: Match }) {
 function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
-      <div aria-label={typeof match.minute === 'number' ? undefined : 'Matchen pågår, matchminut saknas'} className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
+      <div aria-label={typeof match.minute === 'number' && Number.isFinite(match.minute) && match.minute >= 0 ? undefined : 'Matchen pågår, giltig matchminut saknas'} className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
         <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
         LIVE{' '}
-        {typeof match.minute === 'number' ? (
+        {typeof match.minute === 'number' && Number.isFinite(match.minute) && match.minute >= 0 ? (
           <LiveMatchClock match={match} />
         ) : (
           <span>—</span>
