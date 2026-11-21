@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       - name: Match identity regression tests
         run: npm test
+      - name: ESLint check
+        run: npm run lint
       - name: TypeScript check
         run: npm run typecheck
       - name: Production build
