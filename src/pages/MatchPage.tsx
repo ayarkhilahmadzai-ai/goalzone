@@ -406,6 +406,40 @@ export default function MatchPage({
         )}
       </section>
 
+      {/* Matchstatistik från redan hämtade matchdetaljer. */}
+      <section className="mt-6 card p-4 sm:p-8" aria-labelledby="statistics-title">
+        <h2 id="statistics-title" className="mb-5 font-display text-lg font-bold">Matchstatistik</h2>
+        {!match.details?.statistics.length ? (
+          <p className="text-sm text-ink-400">Ingen matchstatistik finns tillgänglig ännu.</p>
+        ) : (
+          <div className="space-y-5">
+            <div className="flex items-center justify-between gap-3 text-xs font-semibold text-ink-400">
+              <span className="min-w-0 flex-1 break-words">{match.home.name}</span>
+              <span className="min-w-0 flex-1 break-words text-right">{match.away.name}</span>
+            </div>
+            {match.details.statistics.map((stat, index) => {
+              const home = Number.isFinite(stat.home) ? Math.max(0, stat.home) : 0;
+              const away = Number.isFinite(stat.away) ? Math.max(0, stat.away) : 0;
+              const total = home + away;
+              const homePercent = total > 0 ? (home / total) * 100 : 50;
+              return (
+                <div key={`${stat.name}-${index}`}>
+                  <div className="mb-2 flex items-center justify-between gap-2 text-sm">
+                    <span className="shrink-0 font-bold tabular-nums text-ink-100">{stat.home}</span>
+                    <span className="min-w-0 break-words text-center text-xs font-medium text-ink-300">{stat.name}</span>
+                    <span className="shrink-0 font-bold tabular-nums text-ink-100">{stat.away}</span>
+                  </div>
+                  <div className="flex h-2 overflow-hidden rounded-full bg-ink-700" aria-hidden="true">
+                    <div className="h-full bg-pitch-400" style={{ width: `${homePercent}%` }} />
+                    <div className="h-full bg-ink-400" style={{ width: `${100 - homePercent}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Timeline / events */}
       <div className="mt-6 card p-4 sm:p-8">
         <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
