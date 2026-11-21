@@ -25,6 +25,7 @@ interface HomeProps {
   onSelectMatch: (id: string) => void;
   loading: boolean;
   loadError: boolean;
+  lastSuccessfulFetch: number | null;
   onRetry: () => void;
 }
 
@@ -52,6 +53,7 @@ export default function Home({
   onSelectMatch,
   loading,
   loadError,
+  lastSuccessfulFetch,
   onRetry,
 }: HomeProps) {
   const [activeSection, setActiveSection] = useState<Section>('home');
@@ -226,6 +228,14 @@ export default function Home({
                     <span className="flex-1 text-sm text-red-300">Could not refresh matches. Showing the last available data when possible.</span>
                     <button type="button" onClick={onRetry} className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300">Retry</button>
                   </div>
+                )}
+                {lastSuccessfulFetch !== null && (
+                  <p className="mb-3 text-xs text-ink-400" role="status">
+                    Senaste lyckade hämtning: {new Date(lastSuccessfulFetch).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+                    {Date.now() - lastSuccessfulFetch > 2 * 60 * 1000 && (
+                      <span className="ml-2 font-semibold text-amber-400">Data kan vara inaktuell</span>
+                    )}
+                  </p>
                 )}
                 {loading && (
                   <div className="flex justify-center py-12">
