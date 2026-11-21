@@ -672,10 +672,7 @@ function AppInner() {
           for (const oldMatch of previous) {
             const alreadyPresent = visibleMatches.some((current) =>
               current.id === oldMatch.id ||
-              isSameMatch(current, oldMatch) ||
-              (current.leagueId === oldMatch.leagueId &&
-                normalizeTeam(current.home.name) === normalizeTeam(oldMatch.home.name) &&
-                normalizeTeam(current.away.name) === normalizeTeam(oldMatch.away.name))
+              isSameMatch(current, oldMatch)
             );
             if (!alreadyPresent) visibleMatches.push(oldMatch);
           }
