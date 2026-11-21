@@ -636,7 +636,16 @@ function AppInner() {
         );
       };
 
-      const allMatches: Match[] = [...automaticMatches];
+      // API:t kan skicka samma match flera gånger. Behåll bara
+      // en post per match innan manuella matcher läggs till.
+      const allMatches: Match[] = [];
+      for (const automaticMatch of automaticMatches) {
+        if (!allMatches.some((existing) =>
+          isSameMatch(existing, automaticMatch)
+        )) {
+          allMatches.push(automaticMatch);
+        }
+      }
 
       for (const manualMatch of manualMatches) {
         const existingIndex = allMatches.findIndex(
