@@ -514,10 +514,12 @@ export default function MatchPage({
         </h2>
 
         {sortedEvents.length === 0 ? (
-          <p className="text-sm text-ink-500">
+          <p className="text-sm text-ink-500" role="status">
             {match.status === 'upcoming'
               ? 'Inga händelser ännu – matchen har inte börjat.'
-              : 'Inga matchhändelser har registrerats.'}
+              : detailsError
+                ? 'Matchhändelserna kunde inte uppdateras just nu. Försök igen senare.'
+                : 'Inga matchhändelser har rapporterats för den här matchen.'}
           </p>
         ) : (
           <ol className="relative space-y-3" aria-label="Matchhändelser i tidsordning">
