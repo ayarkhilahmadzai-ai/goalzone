@@ -250,8 +250,8 @@ function mapLineups(
         const candidateName = candidate.name.trim().toLocaleLowerCase('sv');
         // Två olika giltiga API-ID:n ska inte slås ihop enbart
         // för att spelarna råkar ha samma namn.
-        const candidateHasId = /^\\d+$/.test(candidate.id);
-        const playerHasId = /^\\d+$/.test(player.id);
+        const candidateHasId = /^\d+$/.test(candidate.id);
+        const playerHasId = /^\d+$/.test(player.id);
         if (candidateHasId && playerHasId) {
           return candidate.id === player.id;
         }
@@ -270,7 +270,7 @@ function mapLineups(
         const fallback = preferred === previous ? player : previous;
         combined[duplicateIndex] = {
           ...preferred,
-          id: /^\\d+$/.test(preferred.id) ? preferred.id : fallback.id,
+          id: /^\d+$/.test(preferred.id) ? preferred.id : fallback.id,
           number: preferred.number ?? fallback.number,
           position: preferred.position ?? fallback.position,
         };
