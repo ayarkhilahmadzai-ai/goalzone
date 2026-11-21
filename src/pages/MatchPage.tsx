@@ -115,14 +115,14 @@ function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'finished') {
     return (
       <div className="rounded-full bg-ink-700/60 px-3 py-1 text-xs font-semibold text-ink-300">
-        Full Time
+        Slut
       </div>
     );
   }
 
   return (
     <div className="rounded-full bg-ink-700/60 px-3 py-1 text-xs font-semibold text-ink-300">
-      Upcoming
+      Kommande
     </div>
   );
 }
@@ -205,7 +205,7 @@ export default function MatchPage({
         className="mb-6 flex items-center gap-1.5 text-sm font-medium text-ink-300 transition-colors hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to matches
+        Tillbaka till matcher
       </button>
 
       {/* Match header */}
@@ -238,7 +238,7 @@ export default function MatchPage({
 
           {isLive && typeof match.minute === 'number' && (
             <p className="mt-2 text-[10px] text-ink-500">
-              Estimated seconds · Live data may be delayed
+              Uppskattade sekunder · LIVE-data kan vara fördröjd
             </p>
           )}
 
