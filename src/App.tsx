@@ -693,11 +693,22 @@ function AppInner() {
 
     let cancelled = false;
     let inFlight = false;
+    let retryTimer: number | null = null;
 
     const matchId = selectedMatchId;
     const fixtureId = selectedFixtureId;
     const isLive =
       selectedMatch?.status === 'live';
+
+    // För icke-LIVE-matcher: ett begränsat återförsök efter fel.
+    // LIVE-matcher använder redan sitt minutintervall.
+    function scheduleRetry() {
+      if (cancelled || isLive || retryTimer !== null) return;
+      retryTimer = window.setTimeout(() => {
+        retryTimer = null;
+        void refreshDetails(true);
+      }, 30_000);
+    }
 
     async function refreshDetails(
       force: boolean
@@ -740,7 +751,12 @@ function AppInner() {
         if (cancelled) return;
         if (!details) {
           setDetailsErrorId(matchId);
+          scheduleRetry();
           return;
+        }
+        if (retryTimer !== null) {
+          window.clearTimeout(retryTimer);
+          retryTimer = null;
         }
         setDetailsErrorId(null);
 
@@ -785,7 +801,10 @@ function AppInner() {
           )
         );
       } catch (error) {
-        if (!cancelled) setDetailsErrorId(matchId);
+        if (!cancelled) {
+          setDetailsErrorId(matchId);
+          scheduleRetry();
+        }
         console.error(
           'Error refreshing match details:',
           error
@@ -829,6 +848,9 @@ function AppInner() {
 
       if (timer !== null) {
         window.clearInterval(timer);
+      }
+      if (retryTimer !== null) {
+        window.clearTimeout(retryTimer);
       }
 
       document.removeEventListener(
