@@ -96,7 +96,13 @@ function normalizeTeamName(name: string): string {
 }
 
 function sameTeam(a: string, b: string): boolean {
-  return normalizeTeamName(a) === normalizeTeamName(b);
+  const normalizedA = normalizeTeamName(a);
+  const normalizedB = normalizeTeamName(b);
+  // Tomma namn eller namn som enbart består av klubbförkortningar
+  // får aldrig räknas som en säker lagmatchning.
+  return normalizedA.length > 0 &&
+    normalizedB.length > 0 &&
+    normalizedA === normalizedB;
 }
 
 function getEventType(
