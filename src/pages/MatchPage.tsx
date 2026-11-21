@@ -516,7 +516,7 @@ export default function MatchPage({
             {sortedEvents.map(({ event: e, index }) => (
               <div
                 key={`${e.minute}-${e.type}-${e.team}-${e.player}-${index}`}
-                className="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 pl-10"
+                className="relative grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-x-2 gap-y-1 pl-9 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:gap-x-3 sm:pl-10"
               >
                 <div className="absolute left-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-900 ring-2 ring-white/10">
                   {eventIcon(e.type)}
@@ -526,11 +526,11 @@ export default function MatchPage({
                   {e.minute}&apos;
                 </span>
 
-                <span className="min-w-0 flex-1 basis-36 break-words text-sm text-ink-100">
+                <span className="min-w-0 break-words text-sm text-ink-100">
                   {eventLabel(e)}
                 </span>
 
-                <span className="ml-auto shrink-0 text-xs text-ink-500">
+                <span className="col-start-2 min-w-0 break-words text-xs text-ink-500 sm:col-start-3 sm:text-right">
                   {e.team === 'home'
                     ? match.home.short
                     : match.away.short}
