@@ -158,7 +158,9 @@ function mapEvents(
       minute,
       type,
       team,
-      player: event.player?.name || 'Unknown player',
+      player: typeof event.player?.name === 'string' && event.player.name.trim()
+        ? event.player.name.trim()
+        : 'Okänd spelare',
     });
   }
 
