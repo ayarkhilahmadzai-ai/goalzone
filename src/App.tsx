@@ -685,6 +685,17 @@ function AppInner() {
         return visibleMatches.map((match) => {
           let old = oldById.get(match.id);
 
+          // API:ts fixture-ID är stabilare än lagnamn och avsparkstid.
+          // Använd det först när exakt en tidigare match har samma ID.
+          if (!old && match.apiFootballFixtureId != null) {
+            const fixtureCandidates = previous.filter((candidate) =>
+              !claimedIds.has(candidate.id) &&
+              candidate.leagueId === match.leagueId &&
+              candidate.apiFootballFixtureId === match.apiFootballFixtureId
+            );
+            if (fixtureCandidates.length === 1) old = fixtureCandidates[0];
+          }
+
           if (!old) {
             const candidates = previous.filter((candidate) => {
               if (claimedIds.has(candidate.id)) return false;
