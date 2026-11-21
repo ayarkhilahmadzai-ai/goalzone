@@ -108,8 +108,12 @@ function sameTeam(a: string, b: string): boolean {
 function getEventType(
   event: ApiFootballEvent
 ): MatchEvent['type'] | null {
-  const type = (event.type ?? '').toLowerCase();
-  const detail = (event.detail ?? '').toLowerCase();
+  const type = typeof event.type === 'string'
+    ? event.type.trim().toLowerCase()
+    : '';
+  const detail = typeof event.detail === 'string'
+    ? event.detail.trim().toLowerCase()
+    : '';
 
   if (type === 'goal') {
     return 'goal';
