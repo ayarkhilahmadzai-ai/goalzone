@@ -841,8 +841,10 @@ function AppInner() {
       }
     }
 
-    // Hämta detaljer vid första öppningen.
-    void refreshDetails(false);
+    // Hämta detaljer vid öppning. När matchen avslutas görs en
+    // sista uppdatering även om tidigare LIVE-detaljer finns cachade.
+    // För övriga matcher återanvänds redan hämtade detaljer.
+    void refreshDetails(selectedMatch?.status === 'finished');
 
     // Fortsätt uppdatera endast LIVE-matcher.
     const timer = isLive
