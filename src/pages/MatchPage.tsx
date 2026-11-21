@@ -25,7 +25,10 @@ interface MatchPageProps {
 
 function LiveMatchClock({ match }: { match: Match }) {
   const minute = match.minute;
-  const extraTime = match.extraTime ?? 0;
+  const reportedExtraTime = match.extraTime;
+  const extraTime = typeof reportedExtraTime === 'number' && Number.isFinite(reportedExtraTime) && reportedExtraTime > 0
+    ? Math.floor(reportedExtraTime)
+    : 0;
 
   const [now, setNow] = useState(() => Date.now());
   const startRef = useRef(Date.now());
