@@ -308,7 +308,8 @@ function mapStatistics(
       const previous = values.get(key);
       if (!previous) {
         values.set(key, { name, value });
-      } else if (previous.value !== value) {
+      } else if (previous.value !== null && previous.value !== value) {
+        // En konflikt förblir ogiltig även om fler dubletter följer.
         values.set(key, { name: previous.name, value: null });
       }
     }
