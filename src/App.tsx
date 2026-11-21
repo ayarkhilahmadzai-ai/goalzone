@@ -462,6 +462,13 @@ function AppInner() {
         );
       }
 
+      // Vid totalt nätverksfel: behåll senast visade matcher.
+      // Inga nya API-anrop görs för denna reservlösning.
+      if (dbResult.error && footballResult.error) {
+        setLoadError(true);
+        return;
+      }
+
       const manualMatches = (
         (dbResult.data ?? []) as MatchRow[]
       ).map(rowToMatch);
