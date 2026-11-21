@@ -86,6 +86,24 @@ type ApiFootballStatistic = {
   }[];
 };
 
+function preserveMatchesOnPartialFailure(
+  current: Match[],
+  previous: Match[],
+  partialFailure: boolean,
+  isSameMatch: (a: Match, b: Match) => boolean
+): Match[] {
+  const visible = [...current];
+  if (!partialFailure) return visible;
+  for (const oldMatch of previous) {
+    // Behåll saknade matcher utan att återinföra dubbletter.
+    // Kolliderande UI-ID:n får inte dölja skilda fixture-ID:n.
+    if (!visible.some((match) => isSameMatch(match, oldMatch))) {
+      visible.push(oldMatch);
+    }
+  }
+  return visible;
+}
+
 function countMatchIds(matches: Match[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const match of matches) {
@@ -721,20 +739,14 @@ function AppInner() {
         // Om bara en källa misslyckas: behåll tidigare matcher som
         // saknas i det partiella svaret tills båda källorna fungerar igen.
         // Undvik att lägga till en gammal dubblett av en uppdaterad match.
-        const visibleMatches = [...allMatches];
-        if (dbResult.error || footballResult.error ||
-            dbResponseMalformed || apiResponseMalformed ||
-            dbRowsIncomplete || apiRowsIncomplete) {
-          for (const oldMatch of previous) {
-            // Samma UI-ID är inte bevis för samma match: vid ett
-            // delvis misslyckat API-svar måste olika fixture-ID:n
-            // fortfarande kunna behållas som separata matcher.
-            const alreadyPresent = visibleMatches.some((current) =>
-              isSameMatch(current, oldMatch)
-            );
-            if (!alreadyPresent) visibleMatches.push(oldMatch);
-          }
-        }
+        const partialFailure = Boolean(
+          dbResult.error || footballResult.error ||
+          dbResponseMalformed || apiResponseMalformed ||
+          dbRowsIncomplete || apiRowsIncomplete
+        );
+        const visibleMatches = preserveMatchesOnPartialFailure(
+          allMatches, previous, partialFailure, isSameMatch
+        );
 
         // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
         // Kräver en entydig matchning för att inte blanda ihop matcher.
