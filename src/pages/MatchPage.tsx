@@ -486,7 +486,7 @@ export default function MatchPage({
               const homePercent = total > 0 ? (home / total) * 100 : 0;
               return (
                 <div key={`${stat.name}-${index}`} role="group" aria-label={`${stat.name}: ${match.home.name} ${home}, ${match.away.name} ${away}`}>
-                  <div className="mb-2 grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_4rem]">
+                  <div aria-hidden="true" className="mb-2 grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_4rem]">
                     <span className="min-w-0 break-all text-left font-bold tabular-nums text-ink-100">{stat.home}</span>
                     <span className="min-w-0 break-words text-center text-xs font-medium text-ink-300">{stat.name}</span>
                     <span className="min-w-0 break-all text-right font-bold tabular-nums text-ink-100">{stat.away}</span>
