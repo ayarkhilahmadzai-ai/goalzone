@@ -96,7 +96,18 @@ export default function Home({
   const leagueMatches = matches.filter(
     (match) => activeLeague === 'all' || match.leagueId === activeLeague
   );
-  const liveMatches = leagueMatches.filter((match) => match.status === 'live');
+  // Sortera LIVE efter avsparkstid och stabilt ID, inte API-svarets ordning.
+  // Ändrade mål, minuter eller status flyttar inte korten inom LIVE-listan.
+  const liveMatches = leagueMatches
+    .filter((match) => match.status === 'live')
+    .sort((a, b) => {
+      const aTime = Date.parse(a.kickoff);
+      const bTime = Date.parse(b.kickoff);
+      const timeDifference =
+        (Number.isFinite(aTime) ? aTime : Number.MAX_SAFE_INTEGER) -
+        (Number.isFinite(bTime) ? bTime : Number.MAX_SAFE_INTEGER);
+      return timeDifference || a.id.localeCompare(b.id);
+    });
   const upcomingMatches = leagueMatches
     .filter((match) => match.status === 'upcoming')
     .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
