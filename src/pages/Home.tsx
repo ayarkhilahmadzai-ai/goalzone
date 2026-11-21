@@ -69,6 +69,7 @@ export default function Home({
     currentTime - lastSuccessfulFetch > 2 * 60 * 1000;
   const [search, setSearch] = useState('');
   const [showAllTeams, setShowAllTeams] = useState(false);
+  const [visibleMatchCount, setVisibleMatchCount] = useState(5);
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('goalzone-favorites') || '[]');
@@ -93,6 +94,7 @@ export default function Home({
   };
 
   const openSection = (section: Section) => {
+    setVisibleMatchCount(5);
     setActiveSection(section);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -104,6 +106,10 @@ export default function Home({
   const visibleTeams = showAllTeams
     ? allTeams
     : allTeams.filter((team, index) => index < 6 || favorites.includes(team));
+
+  useEffect(() => {
+    setVisibleMatchCount(5);
+  }, [activeLeague]);
 
   const leagueMatches = matches.filter(
     (match) => activeLeague === 'all' || match.leagueId === activeLeague
@@ -139,14 +145,25 @@ export default function Home({
 
   const renderMatches = (items: Match[], emptyMessage: string) =>
     items.length > 0 ? (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={match}
-            onClick={() => onSelectMatch(match.id)}
-          />
-        ))}
+      <div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.slice(0, visibleMatchCount).map((match) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              onClick={() => onSelectMatch(match.id)}
+            />
+          ))}
+        </div>
+        {items.length > visibleMatchCount && (
+          <button
+            type="button"
+            onClick={() => setVisibleMatchCount((count) => count + 5)}
+            className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-pitch-400 hover:bg-white/10"
+          >
+            Visa fler matcher ({items.length - visibleMatchCount} kvar)
+          </button>
+        )}
       </div>
     ) : (
       <div className="card p-8 text-center text-sm text-ink-400">{emptyMessage}</div>
