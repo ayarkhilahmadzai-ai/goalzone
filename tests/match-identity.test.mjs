@@ -129,4 +129,26 @@ test('kolliderande match-ID får unika och stabilt ordnade UI-nycklar', () => {
   ]);
   assert.deepEqual(result.map((item) => item.apiFootballFixtureId), [101, 102, 103, 104]);
   assert.equal(input[1].id, 'same', 'Originalobjekten får inte muteras');
+  const repeated = ensureUniqueMatchIds(result);
+  assert.deepEqual(repeated, result, 'En ny körning får inte ändra stabila UI-ID:n');
+  assert.equal(new Set(result.map((item) => item.id)).size, result.length);
+});
+
+test('partiellt API-fel skiljer på fixture-ID även vid samma UI-ID', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function preserveMatchesOnPartialFailure(');
+  const end = app.indexOf('function ensureUniqueMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('current: Match[]', 'current')
+    .replace('previous: Match[]', 'previous')
+    .replace('partialFailure: boolean', 'partialFailure')
+    .replace('isSameMatch: (a: Match, b: Match) => boolean', 'isSameMatch')
+    .replace('): Match[]', ')');
+  const preserve = new Function(extracted + '\nreturn preserveMatchesOnPartialFailure;')();
+  const current = [{ ...match(201), id: 'collision' }];
+  const previous = [{ ...match(202), id: 'collision' }];
+  const visible = preserve(current, previous, true, isSameMatch);
+  assert.equal(visible.length, 2);
+  assert.deepEqual(visible.map((item) => item.apiFootballFixtureId), [201, 202]);
 });
