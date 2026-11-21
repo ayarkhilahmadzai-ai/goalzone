@@ -547,9 +547,24 @@ function AppInner() {
         return;
       }
 
-      const manualMatches = (
-        (dbResult.data ?? []) as MatchRow[]
-      ).map(rowToMatch);
+      // Skydda matchlistan även om databassvaret är felaktigt.
+      const dbRows: MatchRow[] = Array.isArray(dbResult.data)
+        ? dbResult.data
+        : [];
+      const manualMatches = dbRows
+        .filter((row) =>
+          row !== null &&
+          typeof row === 'object' &&
+          typeof row.id === 'string' &&
+          typeof row.home_team === 'string' && row.home_team.trim().length > 0 &&
+          typeof row.away_team === 'string' && row.away_team.trim().length > 0 &&
+          typeof row.home_short === 'string' &&
+          typeof row.away_short === 'string' &&
+          typeof row.league_id === 'string' && row.league_id.trim().length > 0 &&
+          typeof row.kickoff === 'string' &&
+          Number.isFinite(Date.parse(row.kickoff))
+        )
+        .map(rowToMatch);
 
       // Ett lyckat HTTP-svar garanterar inte att API:t skickar
       // en lista. Undvik att krascha om svaret är felaktigt.
