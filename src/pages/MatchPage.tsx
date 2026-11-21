@@ -19,6 +19,7 @@ import TeamCrest from '@/components/TeamCrest';
 
 interface MatchPageProps {
   match: Match;
+  detailsError?: boolean;
   onBack: () => void;
 }
 
@@ -154,6 +155,7 @@ function eventLabel(e: MatchEvent) {
 
 export default function MatchPage({
   match,
+  detailsError = false,
   onBack,
 }: MatchPageProps) {
   const showScore =
@@ -219,6 +221,11 @@ export default function MatchPage({
             <StatusBadge match={match} />
           </div>
 
+          {detailsError && (
+            <p className="mt-2 text-xs font-medium text-amber-400" role="alert">
+              Det gick inte att uppdatera matchdetaljerna. Tidigare uppgifter visas om de finns.
+            </p>
+          )}
           {detailsFetchedAt != null && (
             <p className="mt-2 text-xs text-ink-400" role="status">
               Matchdetaljer senast hämtade: {new Date(detailsFetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
