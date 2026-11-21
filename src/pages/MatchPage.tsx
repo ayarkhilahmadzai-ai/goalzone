@@ -436,11 +436,11 @@ export default function MatchPage({
                             <ul className="space-y-1">
                               {group.map((player) => (
                                 <li key={player.id} aria-label={`${player.name}${player.number != null ? `, tröjnummer ${player.number}` : ", tröjnummer saknas"}${player.position ? `, position ${player.position}` : ", position saknas"}`} className="grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-lg bg-white/5 px-3 py-2 text-sm sm:grid-cols-[1.75rem_minmax(0,1fr)_auto]">
-                                  <span className="w-7 shrink-0 text-right font-semibold tabular-nums text-pitch-400">
+                                  <span aria-hidden="true" className="w-7 shrink-0 text-right font-semibold tabular-nums text-pitch-400">
                                     {player.number ?? '–'}
                                   </span>
-                                  <span className="min-w-0 break-words text-ink-100">{player.name}</span>
-                                  {player.position && <span className="col-start-2 min-w-0 break-words text-xs text-ink-400 sm:col-start-3 sm:text-right">{player.position}</span>}
+                                  <span aria-hidden="true" className="min-w-0 break-words text-ink-100">{player.name}</span>
+                                  {player.position && <span aria-hidden="true" className="col-start-2 min-w-0 break-words text-xs text-ink-400 sm:col-start-3 sm:text-right">{player.position}</span>}
                                 </li>
                               ))}
                             </ul>
