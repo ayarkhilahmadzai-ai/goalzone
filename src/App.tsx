@@ -557,7 +557,12 @@ function AppInner() {
           typeof row.away_short === 'string' &&
           typeof row.league_id === 'string' && row.league_id.trim().length > 0 &&
           typeof row.kickoff === 'string' &&
-          Number.isFinite(Date.parse(row.kickoff))
+          Number.isFinite(Date.parse(row.kickoff)) &&
+          (row.status === 'upcoming' || row.status === 'live' || row.status === 'finished') &&
+          typeof row.home_score === 'number' &&
+          Number.isSafeInteger(row.home_score) && row.home_score >= 0 &&
+          typeof row.away_score === 'number' &&
+          Number.isSafeInteger(row.away_score) && row.away_score >= 0
         )
         .map(rowToMatch);
 
