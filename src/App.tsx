@@ -389,6 +389,9 @@ function AppInner() {
   const [loading, setLoading] =
     useState(true);
 
+  const [lastSuccessfulFetch, setLastSuccessfulFetch] =
+    useState<number | null>(null);
+
   const [
     loadError,
     setLoadError,
@@ -594,13 +597,7 @@ function AppInner() {
       });
 
       setLoadError(false);
-
-      if (
-        dbResult.error &&
-        footballResult.error
-      ) {
-        setLoadError(true);
-      }
+      setLastSuccessfulFetch(Date.now());
     } catch (error) {
       console.error(
         'Error loading matches:',
@@ -888,6 +885,7 @@ function AppInner() {
           onSelectMatch={setSelectedMatchId}
           loading={loading}
           loadError={loadError}
+          lastSuccessfulFetch={lastSuccessfulFetch}
           onRetry={loadMatches}
         />
       </main>
