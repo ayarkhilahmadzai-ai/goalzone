@@ -4,9 +4,9 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Automatiskt verifierat
 
-- [x] 16 matchidentitets- och regressionsfall passerade i GitHub Actions #133.
-- [x] ESLint och TypeScript passerade i GitHub Actions #133.
-- [x] Produktionsbygget passerade i GitHub Actions #133.
+- [x] 17 matchidentitets- och regressionsfall passerade i GitHub Actions #135.
+- [x] ESLint och TypeScript passerade i GitHub Actions #135.
+- [x] Produktionsbygget passerade i GitHub Actions #135.
 
 ## Praktisk manuell testprocedur
 
