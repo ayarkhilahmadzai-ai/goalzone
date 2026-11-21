@@ -746,11 +746,33 @@ function AppInner() {
           previous.map((match) =>
             match.id === matchId &&
             match.apiFootballFixtureId === fixtureId
-              ? {
-                  ...match,
-                  details,
-                  events: details.events,
-                }
+              ? (() => {
+                  // Ett tillfälligt tomt detaljsvar ska inte radera
+                  // redan visade händelser, laguppställningar eller statistik.
+                  const previousDetails = match.details;
+                  const mergedDetails: MatchDetails = {
+                    ...details,
+                    events: details.events.length > 0
+                      ? details.events
+                      : previousDetails?.events ?? details.events,
+                    lineups: {
+                      home: details.lineups.home.length > 0
+                        ? details.lineups.home
+                        : previousDetails?.lineups.home ?? [],
+                      away: details.lineups.away.length > 0
+                        ? details.lineups.away
+                        : previousDetails?.lineups.away ?? [],
+                    },
+                    statistics: details.statistics.length > 0
+                      ? details.statistics
+                      : previousDetails?.statistics ?? [],
+                  };
+                  return {
+                    ...match,
+                    details: mergedDetails,
+                    events: mergedDetails.events,
+                  };
+                })()
               : match
           )
         );
