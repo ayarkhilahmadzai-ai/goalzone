@@ -761,9 +761,10 @@ function AppInner() {
               const currentTime = Date.parse(match.kickoff);
               return Number.isFinite(previousTime) &&
                 Number.isFinite(currentTime) &&
-                // Utan gemensamt fixture-ID: tillåt bara mindre
-                // tidsjusteringar, inte en helt annan dags match.
-                Math.abs(previousTime - currentTime) <= 2 * 60 * 60 * 1000;
+                // Utan gemensamt fixture-ID: använd samma snäva
+                // tidsgräns som dublettkontrollen. Större ändringar
+                // kräver verifierat fixture-ID för säker koppling.
+                Math.abs(previousTime - currentTime) <= 15 * 60 * 1000;
             });
 
             if (candidates.length === 1) old = candidates[0];
