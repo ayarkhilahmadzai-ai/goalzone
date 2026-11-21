@@ -710,8 +710,10 @@ function AppInner() {
             dbResponseMalformed || apiResponseMalformed ||
             dbRowsIncomplete || apiRowsIncomplete) {
           for (const oldMatch of previous) {
+            // Samma UI-ID är inte bevis för samma match: vid ett
+            // delvis misslyckat API-svar måste olika fixture-ID:n
+            // fortfarande kunna behållas som separata matcher.
             const alreadyPresent = visibleMatches.some((current) =>
-              current.id === oldMatch.id ||
               isSameMatch(current, oldMatch)
             );
             if (!alreadyPresent) visibleMatches.push(oldMatch);
