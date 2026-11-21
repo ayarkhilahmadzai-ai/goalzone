@@ -104,6 +104,27 @@ function preserveMatchesOnPartialFailure(
   return visible;
 }
 
+function ensureUniqueMatchIds(matches: Match[]): Match[] {
+  // Skydda React-nycklar och detaljvyer även när två olika matcher
+  // råkar få samma interna ID från separata datakällor.
+  const reserved = new Set(matches.map((match) => match.id));
+  const used = new Set<string>();
+  return matches.map((match) => {
+    if (!used.has(match.id)) {
+      used.add(match.id);
+      return match;
+    }
+    let suffix = 2;
+    let uniqueId = `${match.id}--duplicate-${suffix}`;
+    while (reserved.has(uniqueId) || used.has(uniqueId)) {
+      suffix += 1;
+      uniqueId = `${match.id}--duplicate-${suffix}`;
+    }
+    used.add(uniqueId);
+    return { ...match, id: uniqueId };
+  });
+}
+
 function countMatchIds(matches: Match[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const match of matches) {
@@ -749,7 +770,7 @@ function AppInner() {
         const claimedIds = new Set<string>();
         const visibleIdCounts = countMatchIds(visibleMatches);
 
-        return visibleMatches.map((match) => {
+        const reconciledMatches = visibleMatches.map((match) => {
           // Om det nya svaret innehåller samma UI-ID flera gånger,
           // välj inte godtyckligt vilken post som får gamla detaljer.
           let old = claimedIds.has(match.id) ||
@@ -831,6 +852,7 @@ function AppInner() {
             events: old.events,
           };
         });
+        return ensureUniqueMatchIds(reconciledMatches);
       });
 
       const partialFailure = Boolean(
