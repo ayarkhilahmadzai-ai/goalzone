@@ -762,6 +762,7 @@ function AppInner() {
           if (!old && match.apiFootballFixtureId != null) {
             const fixtureCandidates = previous.filter((candidate) =>
               !claimedIds.has(candidate.id) &&
+              oldIdCounts.get(candidate.id) === 1 &&
               candidate.leagueId === match.leagueId &&
               candidate.apiFootballFixtureId === match.apiFootballFixtureId
             );
@@ -770,7 +771,8 @@ function AppInner() {
 
           if (!old) {
             const candidates = previous.filter((candidate) => {
-              if (claimedIds.has(candidate.id)) return false;
+              if (claimedIds.has(candidate.id) ||
+                  oldIdCounts.get(candidate.id) !== 1) return false;
               if (candidate.leagueId !== match.leagueId) return false;
               const homeName = normalizeTeam(match.home.name);
               const awayName = normalizeTeam(match.away.name);
