@@ -142,13 +142,13 @@ function eventIcon(type: MatchEvent['type']) {
 function eventLabel(e: MatchEvent) {
   switch (e.type) {
     case 'goal':
-      return `Goal — ${e.player}`;
+      return `Mål – ${e.player}`;
     case 'yellow':
-      return `Yellow card — ${e.player}`;
+      return `Gult kort – ${e.player}`;
     case 'red':
-      return `Red card — ${e.player}`;
+      return `Rött kort – ${e.player}`;
     case 'sub':
-      return `Substitution — ${e.player}`;
+      return `Byte – ${e.player}`;
   }
 }
 
@@ -160,9 +160,11 @@ export default function MatchPage({
     match.status === 'live' ||
     match.status === 'finished';
 
-  const sortedEvents = [...match.events].sort(
-    (a, b) => a.minute - b.minute
-  );
+  // Filtrera felaktiga minuter och behåll källans ordning vid samma minut.
+  const sortedEvents = match.events
+    .filter((event) => Number.isFinite(event.minute) && event.minute >= 0)
+    .map((event, index) => ({ event, index }))
+    .sort((a, b) => a.event.minute - b.event.minute || a.index - b.index);
 
   const hasStream =
     match.streamAuthorized &&
@@ -454,22 +456,22 @@ export default function MatchPage({
       <div className="mt-6 card p-4 sm:p-8">
         <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
           <Radio className="h-5 w-5 text-pitch-400" />
-          Match timeline
+          Matchhändelser
         </h2>
 
         {sortedEvents.length === 0 ? (
           <p className="text-sm text-ink-500">
             {match.status === 'upcoming'
-              ? 'No events yet — match hasn’t started.'
-              : 'No events recorded for this match.'}
+              ? 'Inga händelser ännu – matchen har inte börjat.'
+              : 'Inga matchhändelser har registrerats.'}
           </p>
         ) : (
           <div className="relative space-y-3">
             <div className="absolute left-4 top-2 bottom-2 w-px bg-white/5" />
 
-            {sortedEvents.map((e, i) => (
+            {sortedEvents.map(({ event: e, index }) => (
               <div
-                key={i}
+                key={`${e.minute}-${e.type}-${e.team}-${e.player}-${index}`}
                 className="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 pl-10"
               >
                 <div className="absolute left-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-900 ring-2 ring-white/10">
