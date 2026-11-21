@@ -698,8 +698,22 @@ function AppInner() {
 
       // Behåll redan hämtade detaljer när samma match uppdateras.
       setMatches((previous) => {
+        // Ett kolliderande UI-ID får inte godtyckligt välja den
+        // sista av flera gamla matcher. Bara entydiga ID:n kan
+        // användas för direkt återkoppling till tidigare data.
+        const oldIdCounts = new Map<string, number>();
+        for (const previousMatch of previous) {
+          oldIdCounts.set(
+            previousMatch.id,
+            (oldIdCounts.get(previousMatch.id) ?? 0) + 1
+          );
+        }
         const oldById = new Map(
-          previous.map((match) => [match.id, match])
+          previous
+            .filter((previousMatch) =>
+              oldIdCounts.get(previousMatch.id) === 1
+            )
+            .map((previousMatch) => [previousMatch.id, previousMatch])
         );
 
         // Om bara en källa misslyckas: behåll tidigare matcher som
