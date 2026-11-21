@@ -737,9 +737,19 @@ function AppInner() {
         // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
         // Kräver en entydig matchning för att inte blanda ihop matcher.
         const claimedIds = new Set<string>();
+        const visibleIdCounts = new Map<string, number>();
+        for (const visibleMatch of visibleMatches) {
+          visibleIdCounts.set(
+            visibleMatch.id,
+            (visibleIdCounts.get(visibleMatch.id) ?? 0) + 1
+          );
+        }
 
         return visibleMatches.map((match) => {
-          let old = claimedIds.has(match.id)
+          // Om det nya svaret innehåller samma UI-ID flera gånger,
+          // välj inte godtyckligt vilken post som får gamla detaljer.
+          let old = claimedIds.has(match.id) ||
+            visibleIdCounts.get(match.id) !== 1
             ? undefined
             : oldById.get(match.id);
           // Även ett identiskt UI-ID kan peka på en annan match
