@@ -540,13 +540,6 @@ function AppInner() {
         );
       }
 
-      // Vid totalt nätverksfel: behåll senast visade matcher.
-      // Inga nya API-anrop görs för denna reservlösning.
-      if (dbResult.error && footballResult.error) {
-        setLoadError(true);
-        return;
-      }
-
       // Skydda matchlistan även om databassvaret är felaktigt.
       const dbResponseMalformed = !dbResult.error &&
         !Array.isArray(dbResult.data);
@@ -576,6 +569,14 @@ function AppInner() {
         !footballResult.error && Array.isArray(footballResult.data?.matches)
           ? footballResult.data.matches
           : [];
+
+      // Om båda källorna misslyckas ska tidigare matcher ligga kvar.
+      // Ett felaktigt svar räknas också som misslyckad hämtning.
+      if ((dbResult.error || dbResponseMalformed) &&
+          (footballResult.error || apiResponseMalformed)) {
+        setLoadError(true);
+        return;
+      }
 
       // Hoppa över enskilda trasiga API-poster i stället för att
       // låta dem avbryta hela matchlistan.
