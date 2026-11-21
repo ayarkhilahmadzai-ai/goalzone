@@ -90,7 +90,7 @@ function LiveMatchClock({ match }: { match: Match }) {
     <span
       className="tabular-nums"
       title="Estimated seconds since the latest match update. Not an official match clock."
-      aria-label={`Live match, minute ${minuteText}, approximately ${seconds} seconds`}
+      aria-label={`LIVE-match, minut ${minuteText}, cirka ${seconds} sekunder`}
     >
       {minuteText}:{secondsText}
     </span>
@@ -306,7 +306,7 @@ export default function MatchPage({
           {hasEmbed ? (
             <iframe
               src={match.embedUrl}
-              title={`${match.home.name} vs ${match.away.name} live stream`}
+              title={`${match.home.name} mot ${match.away.name}, livesändning`}
               allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               allowFullScreen
               className="absolute inset-0 h-full w-full"
@@ -335,12 +335,12 @@ export default function MatchPage({
 
                     <div>
                       <p className="text-lg font-semibold text-white">
-                        Watch live now
+                        Se matchen live
                       </p>
 
                       <p className="mt-1 flex items-center justify-center gap-1 text-sm text-pitch-400">
                         <ExternalLink className="h-3.5 w-3.5" />
-                        Open the official free stream
+                        Öppna den officiella gratissändningen
                       </p>
                     </div>
                   </>
@@ -353,14 +353,14 @@ export default function MatchPage({
 
                     <div>
                       <p className="text-lg font-semibold text-white">
-                        Stream available at kickoff
+                        Sändning tillgänglig vid avspark
                       </p>
 
                       <p className="mt-1 text-sm text-ink-400">
-                        This match is scheduled for{' '}
+                        Matchen börjar{' '}
                         {formatKickoff(match.kickoff)}.
-                        The official free stream will be
-                        available here once the match goes live.
+                        Den officiella gratissändningen blir
+                        tillgänglig här när matchen är live.
                       </p>
                     </div>
                   </>
@@ -372,13 +372,13 @@ export default function MatchPage({
 
                     <div>
                       <p className="text-lg font-semibold text-white">
-                        No stream available
+                        Ingen sändning tillgänglig
                       </p>
 
                       <p className="mt-1 text-sm text-ink-400">
                         {match.status === 'finished'
-                          ? 'This match has ended. Highlights will appear here when available.'
-                          : 'No official free stream has been added for this match.'}
+                          ? 'Matchen är avslutad. Höjdpunkter visas här om de blir tillgängliga.'
+                          : 'Ingen officiell gratissändning har lagts till för matchen.'}
                       </p>
                     </div>
                   </>
@@ -392,10 +392,7 @@ export default function MatchPage({
           <Info className="h-3.5 w-3.5 shrink-0" />
 
           <p>
-            The video player is prepared for authorized
-            live streams. GoalZone only links to official
-            free streams added by the admin — no
-            unauthorized or invented video links are used.
+            Videospelaren är förberedd för godkända livesändningar. GoalZone länkar endast till officiella gratissändningar som lagts till av administratören. Inga obehöriga eller påhittade videolänkar används.
           </p>
         </div>
       </div>
