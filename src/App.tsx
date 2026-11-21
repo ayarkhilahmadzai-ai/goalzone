@@ -226,18 +226,22 @@ function mapLineups(
       ...mapPlayers(lineup.startXI ?? [], false),
       ...mapPlayers(lineup.substitutes ?? [], true),
     ];
-    const seenPlayers = new Set<string>();
+    // API:t kan skicka flera uppställningsposter för samma lag.
+    // Slå ihop dem utan att skriva över spelare från tidigare poster.
+    const existing = result[side];
+    const seenPlayers = new Set(
+      existing.map((player) => player.name.trim().toLocaleLowerCase('sv'))
+    );
 
-    result[side] = players.filter((player) => {
-      // API-id används när det finns; annars spelarens namn.
-      // Behåll den första posten om samma spelare förekommer flera gånger.
-      const key = /^\d+$/.test(player.id)
-        ? `id:${player.id}`
-        : `name:${player.name.trim().toLocaleLowerCase('sv')}`;
-      if (seenPlayers.has(key)) return false;
-      seenPlayers.add(key);
-      return true;
-    });
+    result[side] = [
+      ...existing,
+      ...players.filter((player) => {
+        const key = player.name.trim().toLocaleLowerCase('sv');
+        if (seenPlayers.has(key)) return false;
+        seenPlayers.add(key);
+        return true;
+      }),
+    ];
   }
 
   return result;
