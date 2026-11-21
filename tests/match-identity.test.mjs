@@ -106,3 +106,27 @@ test('partiellt API-fel behåller saknade matcher utan att skapa dubbletter', ()
   assert.equal(preserve(current, previous, false, isSameMatch).length, 1);
   assert.equal(current.length, 1, 'Indatalistan ska inte ändras');
 });
+
+test('kolliderande match-ID får unika och stabilt ordnade UI-nycklar', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function ensureUniqueMatchIds(');
+  const end = app.indexOf('function countMatchIds(', start);
+  assert.ok(start !== -1 && end > start, 'Kunde inte hitta UI-ID-skyddet');
+  const extracted = app.slice(start, end)
+    .replace('matches: Match[]', 'matches')
+    .replace('): Match[]', ')')
+    .replace('new Set<string>()', 'new Set()');
+  const ensureUniqueMatchIds = new Function(extracted + '\nreturn ensureUniqueMatchIds;')();
+  const input = [
+    { id: 'same', apiFootballFixtureId: 101 },
+    { id: 'same', apiFootballFixtureId: 102 },
+    { id: 'same--duplicate-2', apiFootballFixtureId: 103 },
+    { id: 'same', apiFootballFixtureId: 104 },
+  ];
+  const result = ensureUniqueMatchIds(input);
+  assert.deepEqual(result.map((item) => item.id), [
+    'same', 'same--duplicate-3', 'same--duplicate-2', 'same--duplicate-4',
+  ]);
+  assert.deepEqual(result.map((item) => item.apiFootballFixtureId), [101, 102, 103, 104]);
+  assert.equal(input[1].id, 'same', 'Originalobjekten får inte muteras');
+});
