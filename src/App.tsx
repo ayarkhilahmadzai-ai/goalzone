@@ -599,9 +599,13 @@ function AppInner() {
         validApiRows.map((m) =>
           rowToMatch({
             ...m,
-            id:
-              `api-${m.home_short}-` +
-              `${m.away_short}-${m.kickoff}`,
+            id: m.api_football_fixture_id != null &&
+              typeof m.api_football_fixture_id === 'number' &&
+              Number.isSafeInteger(m.api_football_fixture_id) &&
+              m.api_football_fixture_id > 0
+              ? `api-fixture-${m.api_football_fixture_id}`
+              : `api-${m.league_id}-${m.home_short}-` +
+                `${m.away_short}-${m.kickoff}`,
             created_at:
               new Date().toISOString(),
           })
