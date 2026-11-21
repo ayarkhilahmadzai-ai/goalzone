@@ -289,15 +289,14 @@ function mapStatistics(
     return homeMatches ? 'home' : 'away';
   };
 
-  const home = rawStatistics.find((entry) =>
+  const homeRows = rawStatistics.filter((entry) =>
     matchingSide(entry.team?.name ?? '') === 'home'
   );
-
-  const away = rawStatistics.find((entry) =>
+  const awayRows = rawStatistics.filter((entry) =>
     matchingSide(entry.team?.name ?? '') === 'away'
   );
 
-  if (!home || !away) {
+  if (homeRows.length === 0 || awayRows.length === 0) {
     return [];
   }
 
@@ -325,8 +324,10 @@ function mapStatistics(
     return values;
   };
 
-  const homeValues = collectValues(home.statistics);
-  const awayValues = collectValues(away.statistics);
+  // En match kan ha flera statistikblock per lag. Samla alla block
+  // innan dubletter och motstridiga värden kontrolleras.
+  const homeValues = collectValues(homeRows.flatMap((row) => row.statistics ?? []));
+  const awayValues = collectValues(awayRows.flatMap((row) => row.statistics ?? []));
   const result: MatchStatistic[] = [];
 
   for (const [key, homeStat] of homeValues) {
