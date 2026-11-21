@@ -511,7 +511,7 @@ export default function MatchPage({
           </p>
         ) : (
           <ol className="relative space-y-3" aria-label="Matchhändelser i tidsordning">
-            <div aria-hidden="true" className="absolute left-4 top-2 bottom-2 w-px bg-white/5" />
+            <li aria-hidden="true" className="pointer-events-none absolute left-4 top-2 bottom-2 w-px bg-white/5" />
 
             {sortedEvents.map(({ event: e, index }) => (
               <li
