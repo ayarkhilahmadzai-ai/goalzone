@@ -739,7 +739,9 @@ function AppInner() {
         const claimedIds = new Set<string>();
 
         return visibleMatches.map((match) => {
-          let old = oldById.get(match.id);
+          let old = claimedIds.has(match.id)
+            ? undefined
+            : oldById.get(match.id);
           // Även ett identiskt UI-ID kan peka på en annan match
           // efter en uppdatering. Verifiera matchidentiteten innan
           // tidigare detaljer eller UI-ID återanvänds.
