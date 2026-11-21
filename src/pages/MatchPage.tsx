@@ -486,10 +486,10 @@ export default function MatchPage({
               const homePercent = total > 0 ? (home / total) * 100 : 0;
               return (
                 <div key={`${stat.name}-${index}`}>
-                  <div className="mb-2 flex items-center justify-between gap-2 text-sm">
-                    <span className="shrink-0 font-bold tabular-nums text-ink-100">{stat.home}</span>
+                  <div className="mb-2 grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_4rem]">
+                    <span className="min-w-0 text-left font-bold tabular-nums text-ink-100">{stat.home}</span>
                     <span className="min-w-0 break-words text-center text-xs font-medium text-ink-300">{stat.name}</span>
-                    <span className="shrink-0 font-bold tabular-nums text-ink-100">{stat.away}</span>
+                    <span className="min-w-0 text-right font-bold tabular-nums text-ink-100">{stat.away}</span>
                   </div>
                   <div className="flex h-2 overflow-hidden rounded-full bg-ink-700" aria-hidden="true">
                     {total > 0 && (
