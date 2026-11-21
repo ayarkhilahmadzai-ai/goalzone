@@ -182,7 +182,9 @@ function mapPlayers(
             `${substitute ? 'sub' : 'start'}-${index}`
         ),
         name: player.name!,
-        number: player.number ?? undefined,
+        number: typeof player.number === 'number' && Number.isSafeInteger(player.number) && player.number > 0
+          ? player.number
+          : undefined,
         position: player.pos ?? undefined,
         substitute,
       };
