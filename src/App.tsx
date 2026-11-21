@@ -293,6 +293,7 @@ function mapStatistics(
   }
 
   const result: MatchStatistic[] = [];
+  const seenStatisticTypes = new Set<string>();
 
   for (const statistic of home.statistics ?? []) {
     if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
@@ -301,9 +302,10 @@ function mapStatistics(
       statistic.value
     );
 
-    const awayValue = awayValues.get(
-      statistic.type.trim().toLocaleLowerCase('en')
-    );
+    const statisticKey = statistic.type.trim().toLocaleLowerCase('en');
+    if (seenStatisticTypes.has(statisticKey)) continue;
+
+    const awayValue = awayValues.get(statisticKey);
 
     if (
       homeValue === null ||
@@ -312,6 +314,7 @@ function mapStatistics(
       continue;
     }
 
+    seenStatisticTypes.add(statisticKey);
     result.push({
       name: statistic.type.trim(),
       home: homeValue,
