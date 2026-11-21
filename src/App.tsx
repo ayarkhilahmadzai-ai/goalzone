@@ -567,9 +567,12 @@ function AppInner() {
         typeof m.away_team === 'string' && m.away_team.trim().length > 0 &&
         typeof m.home_short === 'string' &&
         typeof m.away_short === 'string' &&
-        typeof m.league_id === 'string' &&
+        typeof m.league_id === 'string' && m.league_id.trim().length > 0 &&
         typeof m.kickoff === 'string' &&
-        Number.isFinite(Date.parse(m.kickoff))
+        Number.isFinite(Date.parse(m.kickoff)) &&
+        (m.status === 'upcoming' || m.status === 'live' || m.status === 'finished') &&
+        typeof m.home_score === 'number' && Number.isSafeInteger(m.home_score) && m.home_score >= 0 &&
+        typeof m.away_score === 'number' && Number.isSafeInteger(m.away_score) && m.away_score >= 0
       );
 
       const automaticMatches: Match[] =
