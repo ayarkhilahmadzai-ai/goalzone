@@ -182,12 +182,12 @@ export default function MatchPage({
       </button>
 
       {/* Match header */}
-      <div className="card relative overflow-hidden p-6 sm:p-8">
+      <div className="card relative overflow-hidden p-4 sm:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-pitch-500/10 blur-3xl" />
 
         <div className="relative flex flex-col items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-medium uppercase tracking-wider text-ink-400">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-center">
+            <span className="min-w-0 break-words text-xs font-medium uppercase tracking-wider text-ink-400">
               {match.league}
             </span>
 
@@ -200,18 +200,18 @@ export default function MatchPage({
             </p>
           )}
 
-          <div className="mt-6 flex w-full items-center justify-center gap-4 sm:gap-10">
-            <div className="flex flex-1 flex-col items-center gap-3 text-center">
+          <div className="mt-6 flex w-full min-w-0 items-start justify-center gap-2 sm:gap-10">
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 text-center">
               <TeamCrest team={match.home} size="lg" />
 
-              <span className="text-sm font-semibold text-ink-100 sm:text-base">
+              <span className="max-w-full break-words text-xs font-semibold leading-snug text-ink-100 sm:text-base">
                 {match.home.name}
               </span>
             </div>
 
-            <div className="flex flex-col items-center px-2">
+            <div className="flex min-w-0 shrink-0 flex-col items-center px-1 sm:px-2">
               {showScore ? (
-                <span className="font-display text-4xl font-bold tabular-nums text-white sm:text-5xl">
+                <span className="whitespace-nowrap font-display text-2xl font-bold tabular-nums text-white sm:text-5xl">
                   {match.homeScore}
                   <span className="mx-2 text-ink-500">
                     :
@@ -219,7 +219,7 @@ export default function MatchPage({
                   {match.awayScore}
                 </span>
               ) : (
-                <span className="font-display text-2xl font-bold text-pitch-400 sm:text-3xl">
+                <span className="whitespace-nowrap font-display text-xl font-bold text-pitch-400 sm:text-3xl">
                   {new Date(match.kickoff).toLocaleTimeString(
                     undefined,
                     {
@@ -235,10 +235,10 @@ export default function MatchPage({
               </span>
             </div>
 
-            <div className="flex flex-1 flex-col items-center gap-3 text-center">
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 text-center">
               <TeamCrest team={match.away} size="lg" />
 
-              <span className="text-sm font-semibold text-ink-100 sm:text-base">
+              <span className="max-w-full break-words text-xs font-semibold leading-snug text-ink-100 sm:text-base">
                 {match.away.name}
               </span>
             </div>
@@ -359,7 +359,7 @@ export default function MatchPage({
       </div>
 
       {/* Timeline / events */}
-      <div className="mt-6 card p-6 sm:p-8">
+      <div className="mt-6 card p-4 sm:p-8">
         <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
           <Radio className="h-5 w-5 text-pitch-400" />
           Match timeline
@@ -378,7 +378,7 @@ export default function MatchPage({
             {sortedEvents.map((e, i) => (
               <div
                 key={i}
-                className="relative flex items-center gap-3 pl-10"
+                className="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 pl-10"
               >
                 <div className="absolute left-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-900 ring-2 ring-white/10">
                   {eventIcon(e.type)}
@@ -388,11 +388,11 @@ export default function MatchPage({
                   {e.minute}&apos;
                 </span>
 
-                <span className="text-sm text-ink-100">
+                <span className="min-w-0 flex-1 basis-36 break-words text-sm text-ink-100">
                   {eventLabel(e)}
                 </span>
 
-                <span className="ml-auto text-xs text-ink-500">
+                <span className="ml-auto shrink-0 text-xs text-ink-500">
                   {e.team === 'home'
                     ? match.home.short
                     : match.away.short}
