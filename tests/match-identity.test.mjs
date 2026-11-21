@@ -171,3 +171,25 @@ test('partiellt API-fel behåller match från annan liga trots lika fixture-ID',
   assert.equal(visible.length, 2);
   assert.notEqual(visible[0].leagueId, visible[1].leagueId);
 });
+
+test('upprepade partiella API-fel skapar inte nya dubbletter', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function preserveMatchesOnPartialFailure(');
+  const end = app.indexOf('function ensureUniqueMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('current: Match[]', 'current')
+    .replace('previous: Match[]', 'previous')
+    .replace('partialFailure: boolean', 'partialFailure')
+    .replace('isSameMatch: (a: Match, b: Match) => boolean', 'isSameMatch')
+    .replace('): Match[]', ')');
+  const preserve = new Function(extracted + '\nreturn preserveMatchesOnPartialFailure;')();
+  const initial = [match(401), match(402)];
+  const partial = [match(401)];
+  const first = preserve(partial, initial, true, isSameMatch);
+  const second = preserve(partial, first, true, isSameMatch);
+  assert.deepEqual(first.map((item) => item.apiFootballFixtureId), [401, 402]);
+  assert.deepEqual(second.map((item) => item.apiFootballFixtureId), [401, 402]);
+  const recovered = preserve([match(401)], second, false, isSameMatch);
+  assert.deepEqual(recovered.map((item) => item.apiFootballFixtureId), [401]);
+});
