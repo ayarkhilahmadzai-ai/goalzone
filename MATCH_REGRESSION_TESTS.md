@@ -6,7 +6,20 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 - [x] 15 matchidentitets- och regressionsfall passerade i GitHub Actions #129.
 - [x] ESLint och TypeScript passerade i GitHub Actions #129.
-- [ ] Produktionsbygget i #129 inväntar slutresultat.
+- [x] Produktionsbygget passerade i GitHub Actions #129.
+
+## Praktisk manuell testprocedur
+
+1. Starta webbplatsen lokalt eller i en separat testmiljö från `fix/match-deduplication`. Använd inte produktionsmiljön eller riktiga användardata för att simulera fel.
+2. Öppna matchlistan och webbläsarens utvecklarverktyg. Kontrollera synliga matchkort, konsolvarningar om dubbla React-nycklar samt att vald match visar rätt detaljer.
+3. Testa två olika fixture-ID:n med samma lagnamn, liga och avsparkstid. **Förväntat:** två matchkort med korrekta separata detaljer.
+4. Testa samma fixture-ID med ändrad avsparkstid. **Förväntat:** samma match uppdateras utan ett extra kort.
+5. Simulera ett ofullständigt svar från en datakälla i testmiljön och uppdatera. **Förväntat:** tidigare matcher som saknas behålls tillfälligt; de dubbleras inte.
+6. Återställ fullständiga API-svar och uppdatera igen. **Förväntat:** gamla tillfälligt behållna poster försvinner om de inte längre finns i källorna.
+7. Upprepa med kolliderande interna UI-ID:n. **Förväntat:** inga dubbla React-nycklar, ingen förväxling av matchdetaljer.
+8. Dokumentera för varje scenario: testdata/fixture-ID:n, observerat antal matchkort, rätt/fel detaljvy, konsolfel och resultat. Markera checklistan först när scenariot faktiskt har körts.
+
+**Begränsning:** GitHub Actions kör enhetskontroller och produktionsbygge, inte dessa webbläsarscenarier. Gränssnittstesterna är därför fortfarande öppna.
 
 ## Matchidentitet
 
@@ -32,7 +45,7 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 - [x] `npm run typecheck` (GitHub Actions #129)
 - [x] `npm run lint` (GitHub Actions #129)
-- [ ] `npm run build`
+- [x] `npm run build` (GitHub Actions #129)
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
