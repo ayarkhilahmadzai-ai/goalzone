@@ -190,10 +190,11 @@ function mapPlayers(
       const player = entry.player!;
 
       return {
-        id: String(
-          player.id ??
-            `${substitute ? 'sub' : 'start'}-${index}`
-        ),
+        id: typeof player.id === 'number' &&
+          Number.isSafeInteger(player.id) &&
+          player.id > 0
+          ? String(player.id)
+          : `${substitute ? 'sub' : 'start'}-${index}`,
         name: player.name!.trim(),
         number: typeof player.number === 'number' && Number.isSafeInteger(player.number) && player.number > 0
           ? player.number
