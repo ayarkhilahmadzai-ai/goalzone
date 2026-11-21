@@ -281,26 +281,26 @@ function mapStatistics(
   >();
 
   for (const statistic of away.statistics ?? []) {
-    if (!statistic.type) continue;
+    if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
 
     const value = statisticNumber(statistic.value);
 
     if (value !== null) {
-      awayValues.set(statistic.type, value);
+      awayValues.set(statistic.type.trim(), value);
     }
   }
 
   const result: MatchStatistic[] = [];
 
   for (const statistic of home.statistics ?? []) {
-    if (!statistic.type) continue;
+    if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
 
     const homeValue = statisticNumber(
       statistic.value
     );
 
     const awayValue = awayValues.get(
-      statistic.type
+      statistic.type.trim()
     );
 
     if (
@@ -311,7 +311,7 @@ function mapStatistics(
     }
 
     result.push({
-      name: statistic.type,
+      name: statistic.type.trim(),
       home: homeValue,
       away: awayValue,
     });
