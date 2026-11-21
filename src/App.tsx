@@ -551,10 +551,12 @@ function AppInner() {
         (dbResult.data ?? []) as MatchRow[]
       ).map(rowToMatch);
 
+      // Ett lyckat HTTP-svar garanterar inte att API:t skickar
+      // en lista. Undvik att krascha om svaret är felaktigt.
       const apiRows: MatchRow[] =
-        footballResult.error
-          ? []
-          : footballResult.data?.matches ?? [];
+        !footballResult.error && Array.isArray(footballResult.data?.matches)
+          ? footballResult.data.matches
+          : [];
 
       const automaticMatches: Match[] =
         apiRows.map((m) =>
