@@ -89,7 +89,7 @@ test('räknar dubbla UI-ID:n i gamla och nya matchlistor', () => {
 test('partiellt API-fel behåller saknade matcher utan att skapa dubbletter', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const start = app.indexOf('function preserveMatchesOnPartialFailure(');
-  const end = app.indexOf('function countMatchIds(', start);
+  const end = app.indexOf('function ensureUniqueMatchIds(', start);
   assert.ok(start !== -1 && end > start, 'Kunde inte hitta reservlogiken');
   const extracted = app.slice(start, end)
     .replace('current: Match[]', 'current')
