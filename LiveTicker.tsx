@@ -1,6 +1,5 @@
 import { Radio } from 'lucide-react';
 import type { Match } from '@/types';
-import { formatTimeShort } from '@/data';
 import TeamCrest from './TeamCrest';
 
 interface LiveTickerProps {
