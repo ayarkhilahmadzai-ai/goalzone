@@ -1,4 +1,3 @@
-import { Radio } from 'lucide-react';
 import type { Match } from '@/types';
 import TeamCrest from './TeamCrest';
 
