@@ -752,6 +752,7 @@ function AppInner() {
                   const previousDetails = match.details;
                   const mergedDetails: MatchDetails = {
                     ...details,
+                    fetchedAt: Date.now(),
                     events: details.events.length > 0
                       ? details.events
                       : previousDetails?.events ?? details.events,
