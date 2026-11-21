@@ -455,7 +455,13 @@ export default function MatchPage({
           Number.isFinite(stat.home) && Number.isFinite(stat.away) &&
           stat.home >= 0 && stat.away >= 0
         ) ? (
-          <p className="text-sm text-ink-400">Ingen matchstatistik finns tillgänglig ännu.</p>
+          <p className="text-sm text-ink-400" role="status">
+            {match.status === 'upcoming'
+              ? 'Statistiken visas när den blir tillgänglig efter avspark.'
+              : detailsError
+                ? 'Statistiken kunde inte uppdateras just nu. Försök igen senare.'
+                : 'Ingen matchstatistik har rapporterats för den här matchen.'}
+          </p>
         ) : (
           <div className="space-y-5">
             <div className="flex items-center justify-between gap-3 text-xs font-semibold text-ink-400">
