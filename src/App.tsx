@@ -713,9 +713,12 @@ function AppInner() {
             const candidates = previous.filter((candidate) => {
               if (claimedIds.has(candidate.id)) return false;
               if (candidate.leagueId !== match.leagueId) return false;
+              const homeName = normalizeTeam(match.home.name);
+              const awayName = normalizeTeam(match.away.name);
               if (
-                normalizeTeam(candidate.home.name) !== normalizeTeam(match.home.name) ||
-                normalizeTeam(candidate.away.name) !== normalizeTeam(match.away.name)
+                !homeName || !awayName ||
+                normalizeTeam(candidate.home.name) !== homeName ||
+                normalizeTeam(candidate.away.name) !== awayName
               ) return false;
               if (
                 candidate.apiFootballFixtureId != null &&
