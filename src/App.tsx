@@ -235,7 +235,7 @@ function statisticNumber(
   value: number | string | null | undefined
 ): number | null {
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
+    return Number.isFinite(value) && value >= 0 ? value : null;
   }
 
   if (typeof value !== 'string') {
@@ -247,7 +247,7 @@ function statisticNumber(
 
   const parsed = Number(normalized);
 
-  return Number.isFinite(parsed) ? parsed : null;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
 function mapStatistics(
