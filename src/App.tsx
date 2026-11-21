@@ -242,19 +242,42 @@ function mapLineups(
     // API:t kan skicka flera uppställningsposter för samma lag.
     // Slå ihop dem utan att skriva över spelare från tidigare poster.
     const existing = result[side];
-    const seenPlayers = new Set(
-      existing.map((player) => player.name.trim().toLocaleLowerCase('sv'))
-    );
+    const combined = [...existing];
 
-    result[side] = [
-      ...existing,
-      ...players.filter((player) => {
-        const key = player.name.trim().toLocaleLowerCase('sv');
-        if (seenPlayers.has(key)) return false;
-        seenPlayers.add(key);
-        return true;
-      }),
-    ];
+    for (const player of players) {
+      const nameKey = player.name.trim().toLocaleLowerCase('sv');
+      const duplicateIndex = combined.findIndex((candidate) => {
+        const candidateName = candidate.name.trim().toLocaleLowerCase('sv');
+        // Två olika giltiga API-ID:n ska inte slås ihop enbart
+        // för att spelarna råkar ha samma namn.
+        const candidateHasId = /^\\d+$/.test(candidate.id);
+        const playerHasId = /^\\d+$/.test(player.id);
+        if (candidateHasId && playerHasId) {
+          return candidate.id === player.id;
+        }
+        return candidateName === nameKey;
+      });
+
+      if (duplicateIndex === -1) {
+        combined.push(player);
+      } else {
+        const previous = combined[duplicateIndex];
+        // Behåll startspelare framför reservposter och komplettera
+        // saknade uppgifter från den andra posten.
+        const preferred = previous.substitute && !player.substitute
+          ? player
+          : previous;
+        const fallback = preferred === previous ? player : previous;
+        combined[duplicateIndex] = {
+          ...preferred,
+          id: /^\\d+$/.test(preferred.id) ? preferred.id : fallback.id,
+          number: preferred.number ?? fallback.number,
+          position: preferred.position ?? fallback.position,
+        };
+      }
+    }
+
+    result[side] = combined;
   }
 
   return result;
