@@ -606,6 +606,14 @@ function AppInner() {
               ? `api-fixture-${m.api_football_fixture_id}`
               : `api-${m.league_id}-${m.home_short}-` +
                 `${m.away_short}-${m.kickoff}`,
+            // Ogiltiga fixture-ID:n får inte användas för att
+            // matcha eller återanvända detaljer från andra matcher.
+            api_football_fixture_id:
+              typeof m.api_football_fixture_id === 'number' &&
+              Number.isSafeInteger(m.api_football_fixture_id) &&
+              m.api_football_fixture_id > 0
+                ? m.api_football_fixture_id
+                : null,
             created_at:
               new Date().toISOString(),
           })
