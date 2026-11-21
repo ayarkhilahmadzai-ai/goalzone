@@ -696,6 +696,7 @@ function AppInner() {
     let retryTimer: number | null = null;
     let retryCount = 0;
     let retryPending = false;
+    let lastLiveAttemptAt = 0;
 
     const matchId = selectedMatchId;
     const fixtureId = selectedFixtureId;
@@ -728,6 +729,9 @@ function AppInner() {
         return;
       }
 
+      // Flikbyte och minutintervall kan annars trigga täta LIVE-anrop.
+      if (isLive && Date.now() - lastLiveAttemptAt < 30_000) return;
+
       const current = selectedMatchRef.current;
 
       if (
@@ -746,6 +750,7 @@ function AppInner() {
       }
 
       inFlight = true;
+      if (isLive) lastLiveAttemptAt = Date.now();
 
       if (!current.details) {
         setDetailsLoadingId(matchId);
