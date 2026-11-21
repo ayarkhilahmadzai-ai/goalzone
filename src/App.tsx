@@ -212,13 +212,15 @@ function mapLineups(
 
     let side: 'home' | 'away';
 
-    if (sameTeam(teamName, match.home.name)) {
-      side = 'home';
-    } else if (sameTeam(teamName, match.away.name)) {
-      side = 'away';
-    } else {
-      continue;
-    }
+    const homeMatches = sameTeam(teamName, match.home.name) ||
+      sameTeam(teamName, match.home.short);
+    const awayMatches = sameTeam(teamName, match.away.name) ||
+      sameTeam(teamName, match.away.short);
+
+    // Undvik att placera en laguppställning under fel lag.
+    if (homeMatches === awayMatches) continue;
+
+    side = homeMatches ? 'home' : 'away';
 
     result[side] = [
       ...mapPlayers(lineup.startXI ?? [], false),
