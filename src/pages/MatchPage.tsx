@@ -358,6 +358,54 @@ export default function MatchPage({
         </div>
       </div>
 
+      {/* Laguppställningar hämtas från redan tillgängliga matchdetaljer. */}
+      <section className="mt-6 card p-4 sm:p-8" aria-labelledby="lineups-title">
+        <h2 id="lineups-title" className="mb-5 font-display text-lg font-bold">Laguppställningar</h2>
+        {!match.details?.lineups.home.length && !match.details?.lineups.away.length ? (
+          <p className="text-sm text-ink-400">Laguppställningar är ännu inte tillgängliga för den här matchen.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {(['home', 'away'] as const).map((side) => {
+              const team = match[side];
+              const players = match.details?.lineups[side] ?? [];
+              return (
+                <div key={side} className="min-w-0">
+                  <h3 className="mb-3 break-words text-base font-semibold text-ink-100">{team.name}</h3>
+                  {players.length === 0 ? (
+                    <p className="text-sm text-ink-400">Ingen laguppställning tillgänglig.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {([false, true] as const).map((substitute) => {
+                        const group = players.filter((player) => player.substitute === substitute);
+                        if (group.length === 0) return null;
+                        return (
+                          <div key={String(substitute)}>
+                            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                              {substitute ? 'Avbytare' : 'Startelva'}
+                            </h4>
+                            <ul className="space-y-1">
+                              {group.map((player) => (
+                                <li key={player.id} className="flex min-w-0 items-start gap-3 rounded-lg bg-white/5 px-3 py-2 text-sm">
+                                  <span className="w-7 shrink-0 text-right font-semibold tabular-nums text-pitch-400">
+                                    {player.number ?? '–'}
+                                  </span>
+                                  <span className="min-w-0 flex-1 break-words text-ink-100">{player.name}</span>
+                                  {player.position && <span className="shrink-0 text-xs text-ink-400">{player.position}</span>}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Timeline / events */}
       <div className="mt-6 card p-4 sm:p-8">
         <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
