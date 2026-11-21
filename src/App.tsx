@@ -179,8 +179,6 @@ function mapEvents(
 
     const teamName = event.team?.name ?? '';
 
-    let team: 'home' | 'away';
-
     // API-namn kan skilja sig från visningsnamn. Använd även kortnamn,
     // men bara när exakt ett av lagen matchar.
     const homeMatches = sameTeam(teamName, match.home.name) ||
@@ -193,7 +191,7 @@ function mapEvents(
       continue;
     }
 
-    team = homeMatches ? 'home' : 'away';
+    const team: 'home' | 'away' = homeMatches ? 'home' : 'away';
 
     result.push({
       minute,
@@ -249,8 +247,6 @@ function mapLineups(
   for (const lineup of rawLineups) {
     const teamName = lineup.team?.name ?? '';
 
-    let side: 'home' | 'away';
-
     const homeMatches = sameTeam(teamName, match.home.name) ||
       sameTeam(teamName, match.home.short);
     const awayMatches = sameTeam(teamName, match.away.name) ||
@@ -259,7 +255,7 @@ function mapLineups(
     // Undvik att placera en laguppställning under fel lag.
     if (homeMatches === awayMatches) continue;
 
-    side = homeMatches ? 'home' : 'away';
+    const side: 'home' | 'away' = homeMatches ? 'home' : 'away';
 
     const players = [
       ...mapPlayers(lineup.startXI ?? [], false),
