@@ -402,6 +402,8 @@ function AppInner() {
     setDetailsLoadingId,
   ] = useState<string | null>(null);
 
+  const [detailsErrorId, setDetailsErrorId] = useState<string | null>(null);
+
   const initialLoadRef = useRef(true);
   const matchesRequestRef = useRef(false);
   const selectedMatchRef = useRef<Match | null>(null);
@@ -735,12 +737,12 @@ function AppInner() {
         const details =
           await fetchMatchDetails(current);
 
-        if (
-          cancelled ||
-          !details
-        ) {
+        if (cancelled) return;
+        if (!details) {
+          setDetailsErrorId(matchId);
           return;
         }
+        setDetailsErrorId(null);
 
         setMatches((previous) =>
           previous.map((match) =>
@@ -783,6 +785,7 @@ function AppInner() {
           )
         );
       } catch (error) {
+        if (!cancelled) setDetailsErrorId(matchId);
         console.error(
           'Error refreshing match details:',
           error
@@ -869,6 +872,7 @@ function AppInner() {
           )}
 
           <MatchPage
+            detailsError={detailsErrorId === selectedMatch.id}
             match={selectedMatch}
             onBack={() =>
               setSelectedMatchId(null)
