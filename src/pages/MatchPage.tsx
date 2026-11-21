@@ -90,7 +90,8 @@ function LiveMatchClock({ match }: { match: Match }) {
     <span
       className="tabular-nums"
       title="Uppskattade sekunder sedan senaste matchuppdateringen. Inte en officiell matchklocka."
-      aria-label={`LIVE-match, minut ${minuteText}, cirka ${seconds} sekunder`}
+      aria-label={`Matchminut ${minuteText}. Sekunderna är uppskattade och inte officiella.`}
+      aria-live="off"
     >
       {minuteText}:{secondsText}
     </span>
