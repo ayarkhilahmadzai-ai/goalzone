@@ -168,7 +168,7 @@ export default function Home({
           <button
             type="button"
             onClick={() => setVisibleMatchCount((count) => count + 5)}
-            className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-pitch-400 hover:bg-white/10"
+            className="mt-5 min-h-11 w-full rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-pitch-400 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
           >
             Visa fler matcher ({items.length - visibleMatchCount} kvar)
           </button>
@@ -246,7 +246,7 @@ export default function Home({
               <button
                 type="button"
                 onClick={() => openSection('home')}
-                className="mb-5 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-pitch-400 hover:bg-white/10"
+                className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-pitch-400 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Home
               </button>
@@ -316,7 +316,7 @@ export default function Home({
                                     type="button"
                                     onClick={() => toggleFavorite(team)}
                                     aria-pressed={favorites.includes(team)}
-                                    className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                                    className={`min-h-11 rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400 ${
                                       favorites.includes(team)
                                         ? 'border-red-400 bg-red-500/20 text-red-300'
                                         : 'border-white/10 bg-white/5 text-ink-300 hover:border-red-400/50'
@@ -330,7 +330,7 @@ export default function Home({
                                 <button
                                   type="button"
                                   onClick={() => setShowAllTeams((value) => !value)}
-                                  className="mt-4 text-sm font-semibold text-pitch-400 hover:text-pitch-300"
+                                  className="mt-4 min-h-11 text-sm font-semibold text-pitch-400 hover:text-pitch-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
                                 >
                                   {showAllTeams ? 'Show less ↑' : 'View all teams →'}
                                 </button>
