@@ -221,3 +221,10 @@ test('reservmatchning jämför absoluta tider trots olika tidszoner', () => {
   assert.equal(isSameMatch(utc, sameInstant), true);
   assert.equal(isSameMatch(utc, outsideWindow), false);
 });
+
+test('olika fixture-ID:n hålls isär även när tidszonerna anger samma avspark', () => {
+  const utc = match(601, '2026-11-22T18:00:00Z');
+  const local = match(602, '2026-11-22T19:00:00+01:00');
+  assert.equal(isSameMatch(utc, local), false);
+  assert.equal(isSameMatch(local, utc), false);
+});
