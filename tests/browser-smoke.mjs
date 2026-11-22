@@ -150,7 +150,9 @@ try {
   await derbyCards.first().waitFor({ timeout: 15000 });
   assert.equal(await derbyCards.count(), 2,
     'Different fixture IDs with identical teams and kickoff must stay separate');
-  await fixturePage.getByRole('button', { name: /LIVE/ }).first().click();
+  await fixturePage.getByRole('button', { name: 'Menu' }).click();
+  await fixturePage.getByRole('navigation', { name: 'Huvudmeny mobil' })
+    .getByRole('button', { name: 'Live' }).click();
   const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea, Premier League, LIVE/ });
   await arsenalCard.first().waitFor();
   await arsenalCard.first().click();
