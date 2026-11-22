@@ -51,6 +51,13 @@ try {
   await headerMobileMenu.getByRole('button', { name: 'Matches' }).click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).first().waitFor();
   await page.getByRole('navigation', { name: 'Mobilnavigering' }).waitFor();
+  const menuToggle = page.getByRole('button', { name: 'Menu' });
+  await menuToggle.focus();
+  assert.equal(await menuToggle.evaluate((element) => element === document.activeElement), true);
+  await page.keyboard.press('Enter');
+  assert.equal(await menuToggle.getAttribute('aria-expanded'), 'true');
+  await page.keyboard.press('Enter');
+  assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false');
   const mobileNav = page.getByRole('navigation', { name: 'Mobilnavigering' });
   for (const tab of ['Hem', 'LIVE', 'Matcher', 'Ligor', 'Favoriter']) {
     assert.equal(await mobileNav.getByRole('button', { name: tab, exact: true }).count(), 1);
