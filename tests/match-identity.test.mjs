@@ -309,3 +309,28 @@ test('tomt partiellt API-svar behåller tidigare matcher tills återhämtning', 
   assert.deepEqual(preserve([], duringOutage, false, isSameMatch), []);
   assert.equal(previous.length, 2);
 });
+
+test('omordnade matcher med samma UI-ID behåller unika nycklar och rätt fixture-ID', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function ensureUniqueMatchIds(');
+  const end = app.indexOf('function countMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('matches: Match[]', 'matches')
+    .replace('): Match[]', ')')
+    .replace('new Set<string>()', 'new Set()');
+  const ensureUniqueMatchIds = new Function(extracted + '\nreturn ensureUniqueMatchIds;')();
+  const matches = [
+    { id: 'collision', apiFootballFixtureId: 1101 },
+    { id: 'collision', apiFootballFixtureId: 1102 },
+    { id: 'collision', apiFootballFixtureId: 1103 },
+  ];
+  for (const input of [matches, [...matches].reverse()]) {
+    const output = ensureUniqueMatchIds(input);
+    assert.equal(new Set(output.map((item) => item.id)).size, 3);
+    assert.deepEqual(
+      output.map((item) => item.apiFootballFixtureId),
+      input.map((item) => item.apiFootballFixtureId)
+    );
+  }
+});
