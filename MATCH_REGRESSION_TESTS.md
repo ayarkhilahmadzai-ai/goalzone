@@ -11,6 +11,15 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 - [x] Headless Chrome renderade en icke-tom React-rot från produktionsbygget i GitHub Actions #172 (med isolerade testvärden för Supabase). Detta testar inte klick eller verkliga API-svar.
 
+## Senaste verifiering av mobilversionen (2026-11-22)
+
+- [x] GitHub Actions #189: matchidentitetsregression, ESLint, TypeScript, produktionsbygge, HTTP-kontroll, Chrome-rendering och webbläsarinteraktioner passerade.
+- [x] Mobilflikarna Hem, LIVE, Matcher, Ligor och Favoriter samt navigering på 320, 375, 390 och 430 px kontrollerades automatiskt.
+- [x] Sidhuvudets desktoplänkar Matches och Live kontrollerades automatiskt.
+- [ ] Mobilmenyns Matches och Live: nytt automatiskt test tillagt, inväntar CI-resultat.
+- [ ] Realistiska API-svar och detaljer för faktiska matcher måste fortfarande verifieras i en isolerad testmiljö.
+- [ ] Den automatiska webbläsarkontrollen använder CI-platshållare för Supabase och ersätter inte end-to-end-testning mot en fungerande backend.
+
 ## Praktisk manuell testprocedur
 
 1. Starta webbplatsen lokalt eller i en separat testmiljö från `fix/match-deduplication`. Använd inte produktionsmiljön eller riktiga användardata för att simulera fel.
@@ -22,7 +31,7 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 7. Upprepa med kolliderande interna UI-ID:n. **Förväntat:** inga dubbla React-nycklar, ingen förväxling av matchdetaljer.
 8. Dokumentera för varje scenario: testdata/fixture-ID:n, observerat antal matchkort, rätt/fel detaljvy, konsolfel och resultat. Markera checklistan först när scenariot faktiskt har körts.
 
-**Begränsning:** GitHub Actions kör enhetstester, produktionsbygge och en grundläggande Chrome-renderingskontroll, men inte dessa interaktiva webbläsarscenarier. Gränssnittstesterna är därför fortfarande öppna.
+**Begränsning:** GitHub Actions kör enhetstester, produktionsbygge och en grundläggande Chrome-renderingskontroll, men inte dessa interaktiva webbläsarscenarier. De särskilda interaktiva scenarierna med realistiska API-svar är därför fortfarande öppna; grundläggande navigation och layout testas numera automatiskt.
 
 ## Protokoll för webbläsarverifiering
 
