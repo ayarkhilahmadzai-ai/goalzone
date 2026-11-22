@@ -228,3 +228,13 @@ test('olika fixture-ID:n hålls isär även när tidszonerna anger samma avspark
   assert.equal(isSameMatch(utc, local), false);
   assert.equal(isSameMatch(local, utc), false);
 });
+
+test('saknat fixture-ID matchar verifierad match bara inom tidsfönstret', () => {
+  const verified = match(701, '2026-11-22T18:00:00Z');
+  const nearby = match(null, '2026-11-22T18:14:59Z');
+  const distant = match(null, '2026-11-22T18:15:01Z');
+  assert.equal(isSameMatch(verified, nearby), true);
+  assert.equal(isSameMatch(nearby, verified), true);
+  assert.equal(isSameMatch(verified, distant), false);
+  assert.equal(isSameMatch(distant, verified), false);
+});
