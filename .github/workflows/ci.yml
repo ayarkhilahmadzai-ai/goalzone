@@ -19,10 +19,6 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Refresh lockfile for patched ws override
-        run: |
-          npm install --package-lock-only --ignore-scripts
-          node -e "const w=require('./package-lock.json').packages['node_modules/ws']; console.log('WS_LOCK_ENTRY='+JSON.stringify({version:w.version,resolved:w.resolved,integrity:w.integrity}))"
       - name: Install dependencies
         run: npm ci
       - name: Audit production dependencies
