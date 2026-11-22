@@ -175,12 +175,12 @@ export default function Home({
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/2 top-0 h-72 w-[60%] -translate-x-1/2 rounded-full bg-pitch-500/10 blur-3xl" />
         </div>
-        <div className="container-app relative py-10 sm:py-16">
+        <div className="container-app relative py-7 sm:py-16">
           <div className="flex w-fit items-center gap-2 rounded-full border border-pitch-500/20 bg-pitch-500/5 px-3 py-1.5">
             <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
             <span className="text-xs font-medium text-pitch-400">Your football world</span>
           </div>
-          <h1 className="mt-5 max-w-2xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
+          <h1 className="mt-4 max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight min-[360px]:text-4xl sm:mt-5 sm:text-6xl">
             Welcome to <span className="text-pitch-400">GoalZone.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-ink-300 sm:text-lg">
@@ -217,13 +217,13 @@ export default function Home({
                   key={id}
                   type="button"
                   onClick={() => openSection(id)}
-                  className="card flex min-h-40 flex-col items-start justify-between gap-4 p-4 text-left hover:border-pitch-500/40 sm:min-h-48 sm:p-6"
+                  className="card flex min-h-36 min-w-0 flex-col items-start justify-between gap-3 p-3 text-left transition-colors active:border-pitch-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400 min-[360px]:min-h-40 min-[360px]:p-4 hover:border-pitch-500/40 sm:min-h-48 sm:gap-4 sm:p-6"
                 >
-                  <span className="rounded-xl bg-pitch-500/10 p-3 text-pitch-400">
+                  <span className="rounded-xl bg-pitch-500/10 p-2.5 text-pitch-400 sm:p-3">
                     <Icon className="h-6 w-6" />
                   </span>
                   <span className="w-full">
-                    <span className="block text-sm font-bold text-ink-100 sm:text-lg">{title}</span>
+                    <span className="block break-words text-xs font-bold text-ink-100 min-[360px]:text-sm sm:text-lg">{title}</span>
                     <span className="mt-1 block text-xs text-ink-400 sm:text-sm">{description}</span>
                     <span className="mt-3 block text-xs font-semibold text-pitch-400">Open →</span>
                   </span>
