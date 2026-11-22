@@ -51,7 +51,7 @@ jobs:
           test -s /tmp/goalzone-index.html || { echo "HTTP response body is empty"; cat /tmp/goalzone-preview.log; exit 1; }
           grep -q 'id="root"' /tmp/goalzone-index.html || { echo "Missing React root"; exit 1; }
           grep -q '/assets/' /tmp/goalzone-index.html || { echo "Missing asset links"; exit 1; }
-          assets=$(grep -oE '/goalzone/assets/[^"]+\\.(js|css)' /tmp/goalzone-index.html | sort -u)
+          assets=$(grep -oE '/goalzone/assets/[^"]+\.(js|css)' /tmp/goalzone-index.html | sort -u)
           if [ -z "$assets" ]; then
             echo "No JavaScript or CSS asset URLs found in production HTML"
             exit 1
