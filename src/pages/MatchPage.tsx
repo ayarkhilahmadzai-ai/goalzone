@@ -204,17 +204,17 @@ export default function MatchPage({
     currentTime - detailsFetchedAt > 2 * 60 * 1000;
 
   return (
-    <div className="container-app animate-fade-in py-6 sm:py-10">
+    <div className="container-app min-w-0 animate-fade-in py-4 pb-24 sm:py-10 sm:pb-10">
       <button
         onClick={onBack}
-        className="mb-6 flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-ink-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400"
+        className="mb-4 flex min-h-12 items-center gap-2 rounded-lg px-3 text-sm font-medium text-ink-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400"
       >
         <ArrowLeft className="h-4 w-4" />
         Tillbaka till matcher
       </button>
 
       {/* Match header */}
-      <div className="card relative overflow-hidden p-4 sm:p-8">
+      <div className="card relative min-w-0 overflow-hidden p-3 sm:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-pitch-500/10 blur-3xl" />
 
         <div className="relative flex flex-col items-center">
@@ -247,26 +247,26 @@ export default function MatchPage({
             </p>
           )}
 
-          <div className="mt-6 flex w-full min-w-0 items-start justify-center gap-2 sm:gap-10">
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 text-center">
+          <div className="mt-5 grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-1.5 sm:mt-6 sm:gap-10">
+            <div className="flex min-w-0 flex-col items-center gap-2 text-center sm:gap-3">
               <TeamCrest team={match.home} size="lg" />
 
-              <span className="max-w-full break-words text-xs font-semibold leading-snug text-ink-100 sm:text-base">
+              <span className="max-w-full break-words text-[11px] font-semibold leading-snug text-ink-100 sm:text-base">
                 {match.home.name}
               </span>
             </div>
 
             <div className="flex min-w-0 shrink-0 flex-col items-center px-1 sm:px-2">
               {showScore ? (
-                <span className="whitespace-nowrap font-display text-2xl font-bold tabular-nums text-white sm:text-5xl">
+                <span className="whitespace-nowrap font-display text-xl font-bold tabular-nums text-white min-[360px]:text-2xl sm:text-5xl">
                   {match.homeScore}
-                  <span className="mx-2 text-ink-500">
+                  <span className="mx-1 text-ink-500 sm:mx-2">
                     :
                   </span>
                   {match.awayScore}
                 </span>
               ) : (
-                <span className="whitespace-nowrap font-display text-xl font-bold text-pitch-400 sm:text-3xl">
+                <span className="whitespace-nowrap font-display text-base font-bold text-pitch-400 min-[360px]:text-xl sm:text-3xl">
                   {new Date(match.kickoff).toLocaleTimeString(
                     undefined,
                     {
@@ -291,8 +291,8 @@ export default function MatchPage({
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-ink-400">
-            <span className="flex items-center gap-1.5">
+          <div className="mt-5 flex min-w-0 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-xs text-ink-400 sm:mt-6">
+            <span className="flex min-w-0 items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-pitch-400" />
               {formatKickoff(match.kickoff)}
             </span>
