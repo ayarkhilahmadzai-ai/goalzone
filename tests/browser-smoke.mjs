@@ -32,10 +32,13 @@ try {
 
   // Exercise the mobile-first navigation at a narrow iPhone-sized viewport.
   await page.setViewportSize({ width: 320, height: 700 });
+  assert.equal(await page.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded'), 'false');
   await page.getByRole('button', { name: 'Menu' }).click();
-  const headerMobileMenu = page.getByRole('navigation').first();
+  assert.equal(await page.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded'), 'true');
+  const headerMobileMenu = page.getByRole('navigation', { name: 'Huvudmeny mobil' });
   await headerMobileMenu.getByRole('button', { name: 'Live' }).click();
   await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded'), 'false');
   await page.getByRole('button', { name: 'Menu' }).click();
   await headerMobileMenu.getByRole('button', { name: 'Matches' }).click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).first().waitFor();
