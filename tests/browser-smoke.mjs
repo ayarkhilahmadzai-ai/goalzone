@@ -143,15 +143,14 @@ try {
     });
   });
   await fixturePage.goto('http://127.0.0.1:4173/goalzone/', { waitUntil: 'domcontentloaded' });
-  await fixturePage.getByRole('heading', { name: /Welcome to GoalZone/i }).waitFor();
+  await fixturePage.getByRole('heading', { name: 'Dagens matcher' }).waitFor();
   await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
     .getByRole('button', { name: 'Matcher' }).click();
   const derbyCards = fixturePage.getByRole('button', { name: /Liverpool mot Everton/ });
   await derbyCards.first().waitFor({ timeout: 15000 });
   assert.equal(await derbyCards.count(), 2,
     'Different fixture IDs with identical teams and kickoff must stay separate');
-  await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
-    .getByRole('button', { name: 'LIVE' }).click();
+  await fixturePage.getByRole('button', { name: /LIVE/ }).first().click();
   const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea, Premier League, LIVE/ });
   await arsenalCard.first().waitFor();
   await arsenalCard.first().click();
