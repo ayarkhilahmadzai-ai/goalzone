@@ -16,7 +16,7 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 - [x] GitHub Actions #205: simulerad backend i Chrome verifierade separata fixture-ID:n, LIVE-matchdetaljer, målskyttar och laguppställningar.
 - [x] GitHub Actions #205: 25 regressionstester, lint, TypeScript, produktionsbygge och övriga webbläsartester godkända.
 - [x] GitHub Actions #210: produktionsberoenden klarade säkerhetskontrollen efter uppdatering av `ws` till 8.23.0.
-- [ ] Den slutliga körningen måste bekräfta att den incheckade `package-lock.json` fungerar direkt med `npm ci`, utan tillfällig låsfilsuppdatering.
+- [x] GitHub Actions #213: den incheckade `package-lock.json` installerades direkt med `npm ci` och alla CI-steg passerade, inklusive säkerhetskontroll, 25 regressionstester, TypeScript, lint, bygg- och webbläsartester.
 
 - [x] GitHub Actions #201: matchidentitetsregression, ESLint, TypeScript, produktionsbygge, HTTP-kontroll, Chrome-rendering och webbläsarinteraktioner passerade.
 - [x] Mobilflikarna Hem, LIVE, Matcher, Ligor och Favoriter samt navigering på 320, 375, 390 och 430 px kontrollerades automatiskt.
