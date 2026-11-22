@@ -37,7 +37,7 @@ export default function Header({ onNavigate, liveCount }: HeaderProps) {
               key={l.label}
               type="button"
               onClick={() => go(l.route)}
-              className="relative rounded-lg px-4 py-2 text-sm font-medium text-ink-200 transition-colors hover:bg-white/5 hover:text-white"
+              className="relative min-h-11 rounded-lg px-4 py-2 text-sm font-medium text-ink-200 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
             >
               {l.label}
               {l.badge ? (
@@ -54,7 +54,7 @@ export default function Header({ onNavigate, liveCount }: HeaderProps) {
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-controls="goalzone-header-mobile-menu"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-200 hover:bg-white/5 md:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-200 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400 md:hidden"
           aria-label="Menu"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -68,7 +68,7 @@ export default function Header({ onNavigate, liveCount }: HeaderProps) {
               key={l.label}
               type="button"
               onClick={() => go(l.route)}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-ink-200 hover:bg-white/5"
+              className="flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-ink-200 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
             >
               {l.label}
               {l.badge ? (
