@@ -84,3 +84,15 @@ Fyll i tabellen först när respektive scenario faktiskt har körts i en separat
 - [ ] Dokumentera observerat resultat för varje testfall.
 
 **Status:** Automatiska tester inklusive simulerade API-svar verifierade i #205. Manuella tester mot en riktig backend är inte genomförda. Publicering kräver dessutom godkänd säkerhetsgranskning och uttryckligt klartecken.
+
+## Verifiera riktig backend innan publicering
+
+Den automatiska CI-miljön använder avsiktligt platshållare och kan inte bekräfta att produktionsprojektets Supabase-funktioner fungerar. Ett separat **skrivskyddat** kontraktstest finns nu i `tests/backend-smoke.mjs` och körs bara när en ansvarig har tillhandahållit en godkänd testmiljö.
+
+1. Konfigurera `GOALZONE_SUPABASE_URL` och `GOALZONE_SUPABASE_ANON_KEY` i en säker lokal miljö eller i ett skyddat CI-jobb. Använd endast publik/publishable eller anon-nyckel, aldrig service-role-nyckel. Lägg inte in nycklar i Git eller chatt.
+2. Kör `npm run test:backend`. Testet gör en läsning från `matches` och kontrollerar att `football-matches` svarar med ett matchfält.
+3. Sätt vid behov `GOALZONE_TEST_FIXTURE_ID` till ett existerande fixture-ID och kör igen för att kontrollera `football-api-details` (events, lineups, statistics). Ett okänt ID kan legitimt sakna detaljer och verifierar inte datainnehållet.
+4. Verifiera manuellt i webbläsaren att ett verkligt matchkort öppnar korrekt detaljvy och att mål, uppställning och statistik stämmer mot källan.
+5. Dokumentera resultat, datum och miljö utan att publicera hemligheter. Ingen publicering eller merge till `main` sker utan uttryckligt godkännande.
+
+**Blockerare:** Riktig backendåtkomst och verifiering av levande fotbollsdata har inte bekräftats. Godkänd CI för frontend är inte likvärdigt med produktionsgodkännande.
