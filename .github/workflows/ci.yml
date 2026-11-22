@@ -51,4 +51,14 @@ jobs:
           test -s /tmp/goalzone-index.html || { echo "HTTP response body is empty"; cat /tmp/goalzone-preview.log; exit 1; }
           grep -q 'id="root"' /tmp/goalzone-index.html || { echo "Missing React root"; exit 1; }
           grep -q '/assets/' /tmp/goalzone-index.html || { echo "Missing asset links"; exit 1; }
-          echo "Production HTML smoke test passed"
+          assets=$(grep -oE '/goalzone/assets/[^"]+\\.(js|css)' /tmp/goalzone-index.html | sort -u)
+          if [ -z "$assets" ]; then
+            echo "No JavaScript or CSS asset URLs found in production HTML"
+            exit 1
+          fi
+          while IFS= read -r asset; do
+            echo "Checking built asset: $asset"
+            curl --fail --silent --show-error "http://127.0.0.1:4173$asset" -o /tmp/goalzone-asset
+            test -s /tmp/goalzone-asset || { echo "Empty asset response: $asset"; exit 1; }
+          done <<< "$assets"
+          echo "Production HTML and linked assets smoke test passed"
