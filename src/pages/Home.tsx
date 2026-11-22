@@ -262,7 +262,7 @@ export default function Home({
                   <div className="flex flex-wrap items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
                     <AlertCircle className="h-5 w-5 text-red-400" />
                     <span className="flex-1 text-sm text-red-300">Could not refresh matches. Showing the last available data when possible.</span>
-                    <button type="button" onClick={onRetry} className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300">Retry</button>
+                    <button type="button" onClick={onRetry} className="min-h-11 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-300">Retry</button>
                   </div>
                 )}
                 {lastSuccessfulFetch !== null && (
@@ -275,10 +275,10 @@ export default function Home({
                 )}
                 {loading && (
                   <div className="flex justify-center py-12">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-pitch-500/30 border-t-pitch-500" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-pitch-500/30 border-t-pitch-500 motion-reduce:animate-none" />
                   </div>
                 )}
-                {!loading && (!loadError || matches.length > 0) && (
+                {!loading && (
                   <>
                     <LeagueFilter leagues={leagues} active={activeLeague} onChange={onLeagueChange} />
 
