@@ -93,6 +93,75 @@ try {
     assert.equal(await mobileNav.isVisible(), true, `Mobile navigation must be visible at ${width}px`);
   }
 
+  // Deterministic backend simulation: verify real rendered match cards,
+  // distinct fixture identities, search, and match-detail navigation.
+  const fixturePage = await browser.newPage({ viewport: { width: 375, height: 760 } });
+  const row = (id, fixtureId, home, away, status = 'upcoming') => ({
+    id, api_football_fixture_id: fixtureId, home_team: home,
+    home_short: home.slice(0, 3).toUpperCase(), home_color: '#ef4444',
+    away_team: away, away_short: away.slice(0, 3).toUpperCase(),
+    away_color: '#38bdf8', league: 'Premier League', league_id: 'epl',
+    home_score: status === 'live' ? 2 : 0, away_score: 0, status,
+    minute: status === 'live' ? 65 : null, kickoff: '2026-12-01T18:00:00Z',
+    venue: 'Test Stadium', stream_url: null, embed_url: null,
+    created_at: '2026-11-22T12:00:00Z',
+  });
+  const apiMatches = [
+    row('api-a', 50101, 'Arsenal', 'Chelsea', 'live'),
+    row('api-b', 50102, 'Liverpool', 'Everton'),
+    row('api-c', 50103, 'Liverpool', 'Everton'),
+  ];
+  let detailsRequested = 0;
+  await fixturePage.route('**/rest/v1/matches*', route =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+  );
+  await fixturePage.route('**/functions/v1/football-matches', route =>
+    route.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({ success: true, matches: apiMatches }),
+    })
+  );
+  await fixturePage.route('**/functions/v1/football-api-details', async route => {
+    detailsRequested += 1;
+    await route.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({
+        success: true, found: true,
+        details: {
+          events: [{ time: { elapsed: 25 }, team: { name: 'Arsenal' },
+            player: { name: 'Test Scorer' }, type: 'Goal', detail: 'Normal Goal' }],
+          lineups: [
+            { team: { name: 'Arsenal' }, startXI: [{ player: { id: 81, name: 'Test Starter', number: 8, pos: 'M' } }] },
+            { team: { name: 'Chelsea' }, startXI: [{ player: { id: 82, name: 'Test Keeper', number: 1, pos: 'G' } }] },
+          ],
+          statistics: [
+            { team: { name: 'Arsenal' }, statistics: [{ type: 'Ball Possession', value: '60%' }] },
+            { team: { name: 'Chelsea' }, statistics: [{ type: 'Ball Possession', value: '40%' }] },
+          ],
+        },
+      }),
+    });
+  });
+  await fixturePage.goto('http://127.0.0.1:4173/goalzone/', { waitUntil: 'domcontentloaded' });
+  await fixturePage.getByRole('heading', { name: /Welcome to GoalZone/i }).waitFor();
+  await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
+    .getByRole('button', { name: 'Matcher' }).click();
+  const derbyCards = fixturePage.getByRole('button', { name: /Liverpool mot Everton/ });
+  await derbyCards.first().waitFor({ timeout: 15000 });
+  assert.equal(await derbyCards.count(), 2,
+    'Different fixture IDs with identical teams and kickoff must stay separate');
+  await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
+    .getByRole('button', { name: 'LIVE' }).click();
+  const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea/ });
+  await arsenalCard.first().waitFor();
+  await arsenalCard.first().click();
+  await fixturePage.getByRole('navigation', { name: 'Matchdetaljer' }).waitFor();
+  await fixturePage.getByText('Test Scorer').first().waitFor({ timeout: 15000 });
+  assert.ok(detailsRequested > 0, 'Match details endpoint must be called');
+  await fixturePage.getByText('Test Starter').first().waitFor();
+  await fixturePage.getByText('Test Keeper').first().waitFor();
+  await fixturePage.close();
+
   console.log('Browser interactions passed: desktop navigation and mobile tabs, favorites, search, and four viewport widths without horizontal overflow.');
 } finally {
   await browser.close();
