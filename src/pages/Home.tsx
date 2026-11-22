@@ -138,6 +138,8 @@ export default function Home({
   const upcomingMatches = leagueMatches
     .filter((match) => match.status === 'upcoming')
     .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
+  const todayMatches = leagueMatches.filter(m => new Date(m.kickoff).toDateString() === new Date(currentTime).toDateString());
+  const mobileMatches = [...liveMatches, ...todayMatches.filter(m => m.status !== 'live')].slice(0, 4);
   const favoriteMatches = leagueMatches.filter(
     (match) => favorites.includes(match.home.name) || favorites.includes(match.away.name)
   );
@@ -184,7 +186,7 @@ export default function Home({
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/2 top-0 h-72 w-[60%] -translate-x-1/2 rounded-full bg-pitch-500/10 blur-3xl" />
         </div>
-        <div className="container-app relative py-7 sm:py-16">
+        <div className="container-app relative hidden py-7 sm:block sm:py-16">
           <div className="flex w-fit items-center gap-2 rounded-full border border-pitch-500/20 bg-pitch-500/5 px-3 py-1.5">
             <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
             <span className="text-xs font-medium text-pitch-400">Your football world</span>
@@ -217,8 +219,35 @@ export default function Home({
       </section>
 
       <main className="container-app space-y-8 pb-28 sm:pb-12">
+      {activeSection === 'home' && (
+        <section className="space-y-5 pt-5 sm:hidden" aria-label="Mobilöversikt">
+          <div className="flex items-center justify-between">
+            <div><p className="text-xs font-semibold text-pitch-400">DIN FOTBOLLSVÄRLD</p><h1 className="mt-1 text-2xl font-bold">Dagens matcher</h1></div>
+            <button type="button" aria-label="Sök lag" onClick={() => openSection('search')} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-ink-800 text-pitch-400"><Search className="h-5 w-5" /></button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <button type="button" onClick={() => openSection('live')} className="min-h-11 rounded-xl border border-red-500/30 bg-red-500/10 text-sm font-bold text-red-300">● LIVE {liveMatches.length || ''}</button>
+            <button type="button" onClick={() => openSection('fixtures')} className="min-h-11 rounded-xl border border-pitch-500/30 bg-pitch-500/10 text-sm font-bold text-pitch-400">Matcher</button>
+            <button type="button" onClick={() => openSection('favorites')} className="min-h-11 rounded-xl border border-white/10 bg-ink-800 text-sm font-bold">Favoriter</button>
+          </div>
+          {loadError && <p role="alert" className="text-xs text-amber-400">Matchdata kan vara fördröjd.</p>}
+          {lastSuccessfulFetch !== null && <p className="text-xs text-ink-400">Senast uppdaterad: {new Date(lastSuccessfulFetch).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}{staleLiveData ? ' · Kan vara inaktuell' : ''}</p>}
+          {loading ? <p className="card p-5 text-sm text-ink-400">Hämtar matcher…</p> : (
+            <div className="space-y-3">
+              {mobileMatches.length ? mobileMatches.map(match => <MatchCard key={match.id} match={match} onClick={() => onSelectMatch(match.id)} />) : <p className="card p-5 text-sm text-ink-400">Inga matcher idag. Se kommande matcher.</p>}
+              <button type="button" onClick={() => openSection('fixtures')} className="min-h-11 w-full rounded-xl border border-pitch-500/30 bg-pitch-500/10 text-sm font-bold text-pitch-400">Visa alla matcher →</button>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            {([{id:'standings',label:'Ligatabeller',icon:Trophy},{id:'scorers',label:'Skytteliga',icon:Users},{id:'search',label:'Sök lag',icon:Search},{id:'favorites',label:'Mina favoritlag',icon:Heart}] as const).map(({id,label,icon:Icon}) => (
+              <button key={id} type="button" onClick={() => openSection(id)} className="card flex min-h-24 flex-col items-start justify-between p-4 text-left text-sm font-bold"><Icon className="h-6 w-6 text-pitch-400" />{label} <span className="text-pitch-400">›</span></button>
+            ))}
+          </div>
+        </section>
+      )}
+
         {activeSection === 'home' ? (
-          <section aria-label="Explore GoalZone">
+          <section aria-label="Explore GoalZone" className="hidden sm:block">
             <h2 className="mb-5 font-display text-2xl font-bold">Explore GoalZone</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
               {navigation.map(({ id, title, description, icon: Icon }) => (
@@ -392,9 +421,9 @@ export default function Home({
         <div className="grid grid-cols-5">
           {([
             { id: 'home', label: 'Hem', icon: HomeIcon },
-            { id: 'live', label: 'LIVE', icon: Radio },
             { id: 'fixtures', label: 'Matcher', icon: CalendarDays },
-            { id: 'standings', label: 'Ligor', icon: Trophy },
+            { id: 'standings', label: 'Tabeller', icon: Trophy },
+            { id: 'scorers', label: 'Skytteliga', icon: Users },
             { id: 'favorites', label: 'Favoriter', icon: Heart },
           ] as const).map(({ id, label, icon: Icon }) => (
             <button
