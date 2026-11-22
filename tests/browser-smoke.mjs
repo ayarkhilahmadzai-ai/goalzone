@@ -152,7 +152,7 @@ try {
     'Different fixture IDs with identical teams and kickoff must stay separate');
   await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
     .getByRole('button', { name: 'LIVE' }).click();
-  const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea/ });
+  const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea, Premier League, LIVE/ });
   await arsenalCard.first().waitFor();
   await arsenalCard.first().click();
   await fixturePage.getByRole('navigation', { name: 'Matchdetaljer' }).waitFor();
