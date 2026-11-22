@@ -32,6 +32,13 @@ try {
 
   // Exercise the mobile-first navigation at a narrow iPhone-sized viewport.
   await page.setViewportSize({ width: 320, height: 700 });
+  await page.getByRole('button', { name: 'Menu' }).click();
+  const headerMobileMenu = page.getByRole('navigation').first();
+  await headerMobileMenu.getByRole('button', { name: 'Live' }).click();
+  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await headerMobileMenu.getByRole('button', { name: 'Matches' }).click();
+  await page.getByRole('heading', { name: 'Upcoming Fixtures' }).first().waitFor();
   await page.getByRole('navigation', { name: 'Mobilnavigering' }).waitFor();
   const mobileNav = page.getByRole('navigation', { name: 'Mobilnavigering' });
   for (const tab of ['Hem', 'LIVE', 'Matcher', 'Ligor', 'Favoriter']) {
