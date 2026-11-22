@@ -12,7 +12,7 @@ function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
       <div className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-2.5 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
-        <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
+        <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400 motion-reduce:animate-none" />
         LIVE {match.minute != null ? `${match.minute}'` : ''}
       </div>
     );
@@ -42,9 +42,9 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
       type="button"
       onClick={onClick}
       aria-label={`${match.home.name} mot ${match.away.name}, ${match.league}, ${match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'avslutad' : 'kommande'}`}
-      className="group card relative flex min-h-48 w-full flex-col overflow-hidden p-4 text-left transition-colors duration-200 active:border-pitch-500/50 active:bg-white/5 hover:border-pitch-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400 sm:min-h-52 sm:p-5"
+      className="group card relative flex min-h-48 w-full flex-col overflow-hidden p-4 text-left transition-colors duration-200 motion-reduce:transition-none active:border-pitch-500/50 active:bg-white/5 hover:border-pitch-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400 sm:min-h-52 sm:p-5"
     >
-      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pitch-500/0 blur-3xl transition-all duration-500 group-hover:bg-pitch-500/10" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pitch-500/0 blur-3xl transition-all duration-500 motion-reduce:transition-none group-hover:bg-pitch-500/10" />
 
       <div className="relative flex flex-wrap items-center justify-between gap-2">
         <span className="min-w-0 break-words text-xs font-medium uppercase tracking-wider text-ink-400">
