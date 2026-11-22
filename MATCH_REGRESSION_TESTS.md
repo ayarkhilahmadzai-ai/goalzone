@@ -4,10 +4,10 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Automatiskt verifierat
 
-- [x] 18 matchidentitets- och regressionsfall passerade i GitHub Actions #143.
-- [x] ESLint och TypeScript passerade i GitHub Actions #143.
-- [x] Produktionsbygget passerade i GitHub Actions #143.
-- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` passerade i GitHub Actions #143.
+- [x] 18 matchidentitets- och regressionsfall passerade i GitHub Actions #147.
+- [x] ESLint och TypeScript passerade i GitHub Actions #147.
+- [x] Produktionsbygget passerade i GitHub Actions #147.
+- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` samt hämtning av länkade JavaScript- och CSS-filer passerade i GitHub Actions #147.
 
 ## Praktisk manuell testprocedur
 
@@ -60,10 +60,10 @@ Fyll i tabellen först när respektive scenario faktiskt har körts i en separat
 
 ## Validering
 
-- [x] `npm run typecheck` (GitHub Actions #143)
-- [x] `npm run lint` (GitHub Actions #143)
-- [x] `npm run build` (GitHub Actions #143)
-- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt byggda resurslänkar (GitHub Actions #143).
+- [x] `npm run typecheck` (GitHub Actions #147)
+- [x] `npm run lint` (GitHub Actions #147)
+- [x] `npm run build` (GitHub Actions #147)
+- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt hämtbara JavaScript- och CSS-resurser (GitHub Actions #147).
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
