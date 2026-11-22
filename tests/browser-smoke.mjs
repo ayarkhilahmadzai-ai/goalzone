@@ -34,7 +34,7 @@ try {
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).waitFor();
   assert.equal(await mobileNav.getByRole('button', { name: 'Matcher' }).getAttribute('aria-current'), 'page');
   await mobileNav.getByRole('button', { name: 'Ligor' }).click();
-  await page.getByRole('heading', { name: 'League Standings' }).waitFor();
+  await page.getByRole('heading', { name: 'League Standings' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
   await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
   for (const width of [320, 375, 390, 430]) {
