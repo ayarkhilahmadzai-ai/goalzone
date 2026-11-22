@@ -73,8 +73,8 @@ try {
   await mobileNav.getByRole('button', { name: 'Skytteliga' }).click();
   await page.getByRole('heading', { name: 'Top Scorers' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
-  await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
-  await page.getByRole('button', { name: /Search Teams/i }).click();
+  await page.getByRole('heading', { name: 'Dagens matcher' }).waitFor();
+  await page.getByRole('button', { name: 'Sök lag', exact: true }).first().click();
   await page.getByRole('heading', { name: 'Search Teams' }).first().waitFor();
   const teamSearch = page.getByRole('searchbox', { name: 'Search for a team' });
   // Search remains usable even if the backend is unavailable in CI.
