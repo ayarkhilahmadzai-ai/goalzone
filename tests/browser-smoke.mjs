@@ -12,6 +12,13 @@ try {
   await page.goto('http://127.0.0.1:4173/goalzone/', { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: /Welcome to GoalZone/i }).waitFor({ timeout: 15000 });
 
+  await page.getByRole('navigation').first().getByRole('button', { name: 'Live' }).click();
+  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  await page.getByRole('navigation').first().getByRole('button', { name: 'Matches' }).click();
+  await page.getByRole('heading', { name: 'Upcoming Fixtures' }).first().waitFor();
+  await page.getByRole('button', { name: /Back to Home/i }).click();
+  await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
+
   await page.getByRole('button', { name: /Upcoming fixtures/i }).first().click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).waitFor();
   assert.equal(await page.getByRole('button', { name: /Back to Home/i }).count(), 1);
