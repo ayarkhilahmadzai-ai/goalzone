@@ -35,8 +35,18 @@ try {
   assert.equal(await mobileNav.getByRole('button', { name: 'Matcher' }).getAttribute('aria-current'), 'page');
   await mobileNav.getByRole('button', { name: 'Ligor' }).click();
   await page.getByRole('heading', { name: 'League Standings' }).first().waitFor();
+  await mobileNav.getByRole('button', { name: 'Favoriter' }).click();
+  await page.getByRole('heading', { name: 'Favorite Teams' }).first().waitFor();
+  assert.equal(await mobileNav.getByRole('button', { name: 'Favoriter' }).getAttribute('aria-current'), 'page');
+  await mobileNav.getByRole('button', { name: 'LIVE' }).click();
+  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
   await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
+  await page.getByRole('button', { name: /Search Teams/i }).click();
+  await page.getByRole('heading', { name: 'Search Teams' }).first().waitFor();
+  await page.getByRole('searchbox', { name: 'Search for a team' }).fill('Arsenal');
+  await page.getByRole('searchbox', { name: 'Search for a team' }).fill('');
+  await mobileNav.getByRole('button', { name: 'Hem' }).click();
   for (const width of [320, 375, 390, 430]) {
     await page.setViewportSize({ width, height: 760 });
     const horizontalOverflow = await page.evaluate(() =>
@@ -46,7 +56,7 @@ try {
     assert.equal(await mobileNav.isVisible(), true, `Mobile navigation must be visible at ${width}px`);
   }
 
-  console.log('Browser interactions passed: desktop navigation and 320/375/390/430px mobile tabs without horizontal overflow.');
+  console.log('Browser interactions passed: desktop navigation and mobile tabs, favorites, search, and four viewport widths without horizontal overflow.');
 } finally {
   await browser.close();
 }
