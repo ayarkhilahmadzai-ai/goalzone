@@ -62,15 +62,12 @@ try {
   await page.getByRole('button', { name: /Search Teams/i }).click();
   await page.getByRole('heading', { name: 'Search Teams' }).first().waitFor();
   const teamSearch = page.getByRole('searchbox', { name: 'Search for a team' });
-  // The CI preview uses placeholder backend credentials and may have no match data.
-  // Search is rendered only after a successful fetch or when cached matches exist.
-  if (await teamSearch.count() > 0) {
-    await teamSearch.fill('Arsenal');
-    await teamSearch.fill('');
-  } else {
-    assert.equal(await page.getByRole('heading', { name: 'Search Teams' }).isVisible(), true);
-    console.log('Team search input unavailable without backend data; section navigation verified.');
-  }
+  // Search remains usable even if the backend is unavailable in CI.
+  await teamSearch.waitFor();
+  await teamSearch.fill('Arsenal');
+  assert.equal(await teamSearch.inputValue(), 'Arsenal');
+  await teamSearch.fill('');
+  assert.equal(await teamSearch.inputValue(), '');
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
   for (const width of [320, 375, 390, 430]) {
     await page.setViewportSize({ width, height: 760 });
