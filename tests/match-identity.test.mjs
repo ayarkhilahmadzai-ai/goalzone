@@ -238,3 +238,24 @@ test('saknat fixture-ID matchar verifierad match bara inom tidsfönstret', () =>
   assert.equal(isSameMatch(verified, distant), false);
   assert.equal(isSameMatch(distant, verified), false);
 });
+
+test('partiellt API-fel bevarar båda matcher med kolliderande UI-ID utan extra kopior', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function preserveMatchesOnPartialFailure(');
+  const end = app.indexOf('function ensureUniqueMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('current: Match[]', 'current')
+    .replace('previous: Match[]', 'previous')
+    .replace('partialFailure: boolean', 'partialFailure')
+    .replace('isSameMatch: (a: Match, b: Match) => boolean', 'isSameMatch')
+    .replace('): Match[]', ')');
+  const preserve = new Function(extracted + '\nreturn preserveMatchesOnPartialFailure;')();
+  const initial = [match(801), match(802)];
+  const partial = [match(801)];
+  const first = preserve(partial, initial, true, isSameMatch);
+  const second = preserve(partial, first, true, isSameMatch);
+  assert.deepEqual(first.map((item) => item.apiFootballFixtureId), [801, 802]);
+  assert.deepEqual(second.map((item) => item.apiFootballFixtureId), [801, 802]);
+  assert.equal(new Set(second.map((item) => item.apiFootballFixtureId)).size, 2);
+});
