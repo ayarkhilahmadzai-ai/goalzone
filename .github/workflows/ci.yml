@@ -50,6 +50,9 @@ jobs:
           echo "Preview responded successfully"
           test -s /tmp/goalzone-index.html || { echo "HTTP response body is empty"; cat /tmp/goalzone-preview.log; exit 1; }
           grep -q 'id="root"' /tmp/goalzone-index.html || { echo "Missing React root"; exit 1; }
+          grep -q 'href="/goalzone/goalzone.svg"' /tmp/goalzone-index.html || { echo "Missing base-aware favicon link"; exit 1; }
+          curl --fail --silent --show-error http://127.0.0.1:4173/goalzone/goalzone.svg -o /tmp/goalzone-favicon.svg
+          grep -q '<svg' /tmp/goalzone-favicon.svg || { echo "Invalid favicon response"; exit 1; }
           grep -q '/assets/' /tmp/goalzone-index.html || { echo "Missing asset links"; exit 1; }
           assets=$(grep -oE '/goalzone/assets/[^"]+\.(js|css)' /tmp/goalzone-index.html | sort -u)
           if [ -z "$assets" ]; then
