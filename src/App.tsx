@@ -491,6 +491,8 @@ function AppInner() {
   const [route, setRoute] =
     useState<Route>(parseHash());
 
+  const [navigationRequest, setNavigationRequest] = useState<{ section: 'home' | 'fixtures' | 'live'; serial: number }>({ section: 'home', serial: 0 });
+
   const [activeLeague, setActiveLeague] =
     useState('all');
 
@@ -1152,9 +1154,10 @@ function AppInner() {
     [matches]
   );
 
-  const handleNavigate = () => {
+  const handleNavigate = (section: 'home' | 'fixtures' | 'live') => {
     window.location.hash = '#/';
     setSelectedMatchId(null);
+    setNavigationRequest((previous) => ({ section, serial: previous.serial + 1 }));
   };
 
   if (selectedMatch) {
@@ -1230,6 +1233,7 @@ function AppInner() {
 
       <main className="flex-1">
         <Home
+          navigationRequest={navigationRequest}
           leagues={SAMPLE_LEAGUES}
           matches={matches}
           activeLeague={activeLeague}
