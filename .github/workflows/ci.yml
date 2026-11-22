@@ -82,3 +82,39 @@ jobs:
             fi
           done <<< "$assets"
           echo "Production HTML and linked assets smoke test passed"
+
+      - name: Smoke test React rendering in headless Chrome
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/goalzone-browser-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/goalzone/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/goalzone-browser-preview.log
+            exit 1
+          fi
+          chrome=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$chrome" ]; then
+            echo "Headless Chrome is not available on this runner"
+            exit 1
+          fi
+          timeout 45 "$chrome" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=10000 --dump-dom http://127.0.0.1:4173/goalzone/ > /tmp/goalzone-rendered.html 2>/tmp/goalzone-chrome.log || {
+            cat /tmp/goalzone-chrome.log
+            exit 1
+          }
+          if grep -Eq '<div id="root"></div>' /tmp/goalzone-rendered.html; then
+            echo "React root remained empty after browser rendering"
+            exit 1
+          fi
+          grep -q 'id="root"' /tmp/goalzone-rendered.html || {
+            echo "React root missing from browser DOM"
+            exit 1
+          }
+          echo "Headless Chrome rendered a non-empty React root"
