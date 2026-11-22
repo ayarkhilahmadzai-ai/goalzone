@@ -136,7 +136,7 @@ export default function Home({
       return timeDifference || a.id.localeCompare(b.id);
     });
   const upcomingMatches = leagueMatches
-    .filter((match) => match.status === 'upcoming')
+    .filter((match) => match.status === 'upcoming' && Number.isFinite(Date.parse(match.kickoff)) && Date.parse(match.kickoff) > currentTime)
     .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
   const todayMatches = leagueMatches.filter(m => new Date(m.kickoff).toDateString() === new Date(currentTime).toDateString());
   const mobileMatches = [...liveMatches, ...todayMatches.filter(m => m.status !== 'live')].slice(0, 4);

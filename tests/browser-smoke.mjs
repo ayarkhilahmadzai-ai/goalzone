@@ -59,22 +59,22 @@ try {
   await page.keyboard.press('Enter');
   assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false');
   const mobileNav = page.getByRole('navigation', { name: 'Mobilnavigering' });
-  for (const tab of ['Hem', 'LIVE', 'Matcher', 'Ligor', 'Favoriter']) {
+  for (const tab of ['Hem', 'Matcher', 'Tabeller', 'Skytteliga', 'Favoriter']) {
     assert.equal(await mobileNav.getByRole('button', { name: tab, exact: true }).count(), 1);
   }
   await mobileNav.getByRole('button', { name: 'Matcher' }).click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).waitFor();
   assert.equal(await mobileNav.getByRole('button', { name: 'Matcher' }).getAttribute('aria-current'), 'page');
-  await mobileNav.getByRole('button', { name: 'Ligor' }).click();
+  await mobileNav.getByRole('button', { name: 'Tabeller' }).click();
   await page.getByRole('heading', { name: 'League Standings' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Favoriter' }).click();
   await page.getByRole('heading', { name: 'Favorite Teams' }).first().waitFor();
   assert.equal(await mobileNav.getByRole('button', { name: 'Favoriter' }).getAttribute('aria-current'), 'page');
-  await mobileNav.getByRole('button', { name: 'LIVE' }).click();
-  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  await mobileNav.getByRole('button', { name: 'Skytteliga' }).click();
+  await page.getByRole('heading', { name: 'Top Scorers' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
-  await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
-  await page.getByRole('button', { name: /Search Teams/i }).click();
+  await page.getByRole('heading', { name: 'Dagens matcher' }).waitFor();
+  await page.getByRole('button', { name: 'Sök lag', exact: true }).first().click();
   await page.getByRole('heading', { name: 'Search Teams' }).first().waitFor();
   const teamSearch = page.getByRole('searchbox', { name: 'Search for a team' });
   // Search remains usable even if the backend is unavailable in CI.
@@ -143,15 +143,16 @@ try {
     });
   });
   await fixturePage.goto('http://127.0.0.1:4173/goalzone/', { waitUntil: 'domcontentloaded' });
-  await fixturePage.getByRole('heading', { name: /Welcome to GoalZone/i }).waitFor();
+  await fixturePage.getByRole('heading', { name: 'Dagens matcher' }).waitFor();
   await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
     .getByRole('button', { name: 'Matcher' }).click();
   const derbyCards = fixturePage.getByRole('button', { name: /Liverpool mot Everton/ });
   await derbyCards.first().waitFor({ timeout: 15000 });
   assert.equal(await derbyCards.count(), 2,
     'Different fixture IDs with identical teams and kickoff must stay separate');
-  await fixturePage.getByRole('navigation', { name: 'Mobilnavigering' })
-    .getByRole('button', { name: 'LIVE' }).click();
+  await fixturePage.getByRole('button', { name: 'Menu' }).click();
+  await fixturePage.getByRole('navigation', { name: 'Huvudmeny mobil' })
+    .getByRole('button', { name: 'Live' }).click();
   const arsenalCard = fixturePage.getByRole('button', { name: /Arsenal mot Chelsea, Premier League, LIVE/ });
   await arsenalCard.first().waitFor();
   await arsenalCard.first().click();
