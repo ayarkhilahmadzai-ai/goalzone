@@ -13,10 +13,10 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Senaste verifiering av mobilversionen (2026-11-22)
 
-- [x] GitHub Actions #189: matchidentitetsregression, ESLint, TypeScript, produktionsbygge, HTTP-kontroll, Chrome-rendering och webbläsarinteraktioner passerade.
+- [x] GitHub Actions #201: matchidentitetsregression, ESLint, TypeScript, produktionsbygge, HTTP-kontroll, Chrome-rendering och webbläsarinteraktioner passerade.
 - [x] Mobilflikarna Hem, LIVE, Matcher, Ligor och Favoriter samt navigering på 320, 375, 390 och 430 px kontrollerades automatiskt.
 - [x] Sidhuvudets desktoplänkar Matches och Live kontrollerades automatiskt.
-- [ ] Mobilmenyns Matches och Live: nytt automatiskt test tillagt, inväntar CI-resultat.
+- [x] Mobilmenyns Matches och Live samt tangentbordsstyrning kontrollerade i GitHub Actions #201.
 - [ ] Realistiska API-svar och detaljer för faktiska matcher måste fortfarande verifieras i en isolerad testmiljö.
 - [ ] Den automatiska webbläsarkontrollen använder CI-platshållare för Supabase och ersätter inte end-to-end-testning mot en fungerande backend.
 
