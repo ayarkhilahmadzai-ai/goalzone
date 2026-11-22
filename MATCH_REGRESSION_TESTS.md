@@ -4,10 +4,10 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Automatiskt verifierat
 
-- [x] 21 matchidentitets- och regressionsfall, inklusive tidszoner, skilda fixture-ID:n och saknat fixture-ID vid tidsgränsen, passerade i GitHub Actions #161.
-- [x] ESLint och TypeScript passerade i GitHub Actions #161.
-- [x] Produktionsbygget passerade i GitHub Actions #161.
-- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` samt verifierad hämtning och korrekt MIME-typ för både JavaScript- och CSS-filer passerade i GitHub Actions #161.
+- [x] 22 matchidentitets- och regressionsfall, inklusive upprepade partiella API-fel med kolliderande UI-ID:n, passerade i teststeget i GitHub Actions #163.
+- [x] ESLint och TypeScript passerade i GitHub Actions #163.
+- [x] Produktionsbygget passerade i GitHub Actions #163.
+- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` samt verifierad hämtning och korrekt MIME-typ för både JavaScript- och CSS-filer passerade i GitHub Actions #163.
 
 ## Praktisk manuell testprocedur
 
@@ -60,10 +60,10 @@ Fyll i tabellen först när respektive scenario faktiskt har körts i en separat
 
 ## Validering
 
-- [x] `npm run typecheck` (GitHub Actions #161)
-- [x] `npm run lint` (GitHub Actions #161)
-- [x] `npm run build` (GitHub Actions #161)
-- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt hämtbara JavaScript- och CSS-resurser med korrekta MIME-typer (GitHub Actions #161).
+- [x] `npm run typecheck` (GitHub Actions #163)
+- [x] `npm run lint` (GitHub Actions #163)
+- [x] `npm run build` (GitHub Actions #163)
+- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt hämtbara JavaScript- och CSS-resurser med korrekta MIME-typer (GitHub Actions #163).
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
