@@ -125,3 +125,23 @@ jobs:
           grep -q "Explore GoalZone" /tmp/goalzone-rendered.html || { echo "Home navigation did not render"; exit 1; }
           grep -q "Upcoming fixtures" /tmp/goalzone-rendered.html || { echo "Fixture navigation did not render"; exit 1; }
           echo "Headless Chrome rendered GoalZone home content and navigation"
+
+      - name: Browser interaction smoke test
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/goalzone-interactions-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/goalzone/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/goalzone-interactions-preview.log
+            exit 1
+          fi
+          CHROME_PATH="$(command -v google-chrome)" node tests/browser-smoke.mjs
