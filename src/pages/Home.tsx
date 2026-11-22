@@ -380,10 +380,11 @@ export default function Home({
       </main>
 
       <nav aria-label="Mobilnavigering" className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-ink-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {([
             { id: 'home', label: 'Hem', icon: HomeIcon },
             { id: 'live', label: 'LIVE', icon: Radio },
+            { id: 'fixtures', label: 'Matcher', icon: CalendarDays },
             { id: 'standings', label: 'Ligor', icon: Trophy },
             { id: 'favorites', label: 'Favoriter', icon: Heart },
           ] as const).map(({ id, label, icon: Icon }) => (
@@ -392,7 +393,7 @@ export default function Home({
               type="button"
               onClick={() => openSection(id)}
               aria-current={activeSection === id ? 'page' : undefined}
-              className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${activeSection === id ? 'text-pitch-400' : 'text-ink-400'}`}
+              className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-pitch-400 ${activeSection === id ? 'bg-pitch-500/10 text-pitch-400' : 'text-ink-400 hover:text-ink-100'}`}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
               {label}
