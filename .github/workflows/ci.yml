@@ -58,7 +58,17 @@ jobs:
           fi
           while IFS= read -r asset; do
             echo "Checking built asset: $asset"
-            curl --fail --silent --show-error "http://127.0.0.1:4173$asset" -o /tmp/goalzone-asset
+            curl --fail --silent --show-error -D /tmp/goalzone-asset-headers "http://127.0.0.1:4173$asset" -o /tmp/goalzone-asset
             test -s /tmp/goalzone-asset || { echo "Empty asset response: $asset"; exit 1; }
+            case "$asset" in
+              *.js) expected_type='javascript' ;;
+              *.css) expected_type='text/css' ;;
+              *) echo "Unexpected asset type: $asset"; exit 1 ;;
+            esac
+            if ! grep -Eiq "^content-type:.*$expected_type" /tmp/goalzone-asset-headers; then
+              echo "Unexpected content type for $asset (possible HTML fallback)"
+              cat /tmp/goalzone-asset-headers
+              exit 1
+            fi
           done <<< "$assets"
           echo "Production HTML and linked assets smoke test passed"
