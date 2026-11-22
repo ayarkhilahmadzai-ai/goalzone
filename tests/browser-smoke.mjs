@@ -37,12 +37,16 @@ try {
   await page.getByRole('heading', { name: 'League Standings' }).waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
   await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
-  const horizontalOverflow = await page.evaluate(() =>
-    document.documentElement.scrollWidth > window.innerWidth + 1
-  );
-  assert.equal(horizontalOverflow, false, '320px mobile viewport must not scroll horizontally');
+  for (const width of [320, 375, 390, 430]) {
+    await page.setViewportSize({ width, height: 760 });
+    const horizontalOverflow = await page.evaluate(() =>
+      document.documentElement.scrollWidth > window.innerWidth + 1
+    );
+    assert.equal(horizontalOverflow, false, `${width}px mobile viewport must not scroll horizontally`);
+    assert.equal(await mobileNav.isVisible(), true, `Mobile navigation must be visible at ${width}px`);
+  }
 
-  console.log('Browser interactions passed: desktop navigation and 320px mobile tabs without horizontal overflow.');
+  console.log('Browser interactions passed: desktop navigation and 320/375/390/430px mobile tabs without horizontal overflow.');
 } finally {
   await browser.close();
 }
