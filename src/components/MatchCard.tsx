@@ -42,7 +42,7 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
       type="button"
       onClick={onClick}
       aria-label={`${match.home.name} mot ${match.away.name}, ${match.league}, ${match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'avslutad' : 'kommande'}`}
-      className="group card relative w-full overflow-hidden p-4 text-left transition-all duration-300 hover:border-pitch-500/30 hover:shadow-neon-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400 sm:p-5"
+      className="group card relative flex min-h-48 w-full flex-col overflow-hidden p-4 text-left transition-colors duration-200 active:border-pitch-500/50 active:bg-white/5 hover:border-pitch-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400 sm:min-h-52 sm:p-5"
     >
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pitch-500/0 blur-3xl transition-all duration-500 group-hover:bg-pitch-500/10" />
 
@@ -53,11 +53,11 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
         <StatusBadge match={match} />
       </div>
 
-      <div className="relative mt-5 space-y-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="relative mt-4 flex-1 space-y-4 sm:mt-5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <TeamCrest team={match.home} />
-            <span className="min-w-0 break-words text-sm font-semibold leading-snug text-ink-100">{match.home.name}</span>
+            <span className="min-w-0 break-words text-sm font-semibold leading-snug text-ink-100 sm:text-base">{match.home.name}</span>
           </div>
           {showScore && (
             <span className={`shrink-0 font-display text-2xl font-bold tabular-nums ${isLive ? 'text-pitch-400' : 'text-ink-100'}`}>
@@ -79,8 +79,8 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
         </div>
       </div>
 
-      <div className="relative mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
-        <span className="truncate text-xs text-ink-500">{match.venue}</span>
+      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3 sm:mt-5">
+        <span className="min-w-0 flex-1 truncate text-xs text-ink-500">{match.venue}</span>
         {canWatch ? (
           <span className="flex items-center gap-1 rounded-full bg-pitch-500/15 px-2.5 py-1 text-xs font-semibold text-pitch-400 ring-1 ring-pitch-500/20">
             <Play className="h-3 w-3 fill-pitch-400" /> Watch Live
