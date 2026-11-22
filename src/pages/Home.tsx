@@ -179,7 +179,7 @@ export default function Home({
     );
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in motion-reduce:animate-none">
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/2 top-0 h-72 w-[60%] -translate-x-1/2 rounded-full bg-pitch-500/10 blur-3xl" />
@@ -200,14 +200,14 @@ export default function Home({
               <button
                 type="button"
                 onClick={() => openSection('live')}
-                className="flex items-center gap-2 rounded-xl bg-pitch-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-neon-sm hover:shadow-neon"
+                className="flex min-h-11 items-center gap-2 rounded-xl bg-pitch-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-neon-sm hover:shadow-neon focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400"
               >
                 <Radio className="h-4 w-4" /> Watch live
               </button>
               <button
                 type="button"
                 onClick={() => openSection('fixtures')}
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-ink-100 hover:bg-white/10"
+                className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-ink-100 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
               >
                 <CalendarDays className="h-4 w-4" /> Upcoming fixtures
               </button>
