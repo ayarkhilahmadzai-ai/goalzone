@@ -19,6 +19,7 @@ import Standings from '@/components/Standings';
 import TopScorers from '@/components/TopScorers';
 
 interface HomeProps {
+  navigationRequest?: { section: 'home' | 'fixtures' | 'live'; serial: number };
   leagues: League[];
   matches: Match[];
   activeLeague: string;
@@ -47,6 +48,7 @@ const navigation: {
 ];
 
 export default function Home({
+  navigationRequest,
   leagues,
   matches,
   activeLeague,
@@ -58,6 +60,13 @@ export default function Home({
   onRetry,
 }: HomeProps) {
   const [activeSection, setActiveSection] = useState<Section>('home');
+
+  useEffect(() => {
+    if (!navigationRequest) return;
+    setActiveSection(navigationRequest.section);
+    setVisibleMatchCount(5);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [navigationRequest]);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
