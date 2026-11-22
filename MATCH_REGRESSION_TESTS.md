@@ -13,6 +13,10 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Senaste verifiering av mobilversionen (2026-11-22)
 
+- [x] GitHub Actions #205: simulerad backend i Chrome verifierade separata fixture-ID:n, LIVE-matchdetaljer, målskyttar och laguppställningar.
+- [x] GitHub Actions #205: 25 regressionstester, lint, TypeScript, produktionsbygge och övriga webbläsartester godkända.
+- [ ] Säkerhetsgranskning av produktionsberoenden har lagts till i CI men måste passera innan publicering.
+
 - [x] GitHub Actions #201: matchidentitetsregression, ESLint, TypeScript, produktionsbygge, HTTP-kontroll, Chrome-rendering och webbläsarinteraktioner passerade.
 - [x] Mobilflikarna Hem, LIVE, Matcher, Ligor och Favoriter samt navigering på 320, 375, 390 och 430 px kontrollerades automatiskt.
 - [x] Sidhuvudets desktoplänkar Matches och Live kontrollerades automatiskt.
@@ -31,7 +35,7 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 7. Upprepa med kolliderande interna UI-ID:n. **Förväntat:** inga dubbla React-nycklar, ingen förväxling av matchdetaljer.
 8. Dokumentera för varje scenario: testdata/fixture-ID:n, observerat antal matchkort, rätt/fel detaljvy, konsolfel och resultat. Markera checklistan först när scenariot faktiskt har körts.
 
-**Begränsning:** GitHub Actions kör enhetstester, produktionsbygge och en grundläggande Chrome-renderingskontroll, men inte dessa interaktiva webbläsarscenarier. De särskilda interaktiva scenarierna med realistiska API-svar är därför fortfarande öppna; grundläggande navigation och layout testas numera automatiskt.
+**Begränsning:** GitHub Actions testar nu också interaktiv navigation och vissa matchscenarier med simulerade API-svar (se #205). Det ersätter inte tester mot en riktig backend, och alla scenarier i den manuella checklistan är inte automatiserade.
 
 ## Protokoll för webbläsarverifiering
 
@@ -78,4 +82,4 @@ Fyll i tabellen först när respektive scenario faktiskt har körts i en separat
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
-**Status:** Automatiska tester och kodkontroller verifierade enligt ovan. Manuella gränssnittstester är inte genomförda.
+**Status:** Automatiska tester inklusive simulerade API-svar verifierade i #205. Manuella tester mot en riktig backend är inte genomförda. Publicering kräver dessutom godkänd säkerhetsgranskning och uttryckligt klartecken.
