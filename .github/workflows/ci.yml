@@ -28,6 +28,10 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
       - name: Production build
+        env:
+          # Public, non-functional placeholders for browser smoke testing only.
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
         run: npm run build
       - name: Smoke test built website over HTTP
         run: |
