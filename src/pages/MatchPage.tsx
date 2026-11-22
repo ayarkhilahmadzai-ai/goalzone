@@ -299,7 +299,7 @@ export default function MatchPage({
 
             <span className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-pitch-400" />
-              {match.venue || 'Venue TBC'}
+              {match.venue?.trim() || 'Arena ej bekräftad'}
             </span>
           </div>
         </div>
@@ -426,10 +426,10 @@ export default function MatchPage({
         {!match.details?.lineups.home.length && !match.details?.lineups.away.length ? (
           <p className="text-sm text-ink-400" role="status">
             {match.status === 'upcoming'
-              ? 'Laguppställningarna visas när de blir tillgängliga inför avspark.'
+              ? 'Laguppställningar har ännu inte publicerats för matchen.'
               : detailsError
                 ? 'Laguppställningarna kunde inte uppdateras just nu. Försök igen senare.'
-                : 'Inga laguppställningar har rapporterats för den här matchen.'}
+                : 'Inga laguppställningar finns tillgängliga från den anslutna datakällan.'}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -487,10 +487,10 @@ export default function MatchPage({
         ) ? (
           <p className="text-sm text-ink-400" role="status">
             {match.status === 'upcoming'
-              ? 'Statistiken visas när den blir tillgänglig efter avspark.'
+              ? 'Statistik finns normalt först efter avspark, om datakällan erbjuder den.'
               : detailsError
                 ? 'Statistiken kunde inte uppdateras just nu. Försök igen senare.'
-                : 'Ingen matchstatistik har rapporterats för den här matchen.'}
+                : 'Ingen matchstatistik finns tillgänglig från den anslutna datakällan.'}
           </p>
         ) : (
           <div className="space-y-5">
