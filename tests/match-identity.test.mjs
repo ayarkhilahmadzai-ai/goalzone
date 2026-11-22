@@ -213,3 +213,11 @@ test('unika match-ID:n och referenser bevaras utan onödiga objektbyten', () => 
   assert.strictEqual(result[0], original[0]);
   assert.strictEqual(result[1], original[1]);
 });
+
+test('reservmatchning jämför absoluta tider trots olika tidszoner', () => {
+  const utc = match(null, '2026-11-22T18:00:00Z');
+  const sameInstant = match(null, '2026-11-22T19:00:00+01:00');
+  const outsideWindow = match(null, '2026-11-22T19:16:00+01:00');
+  assert.equal(isSameMatch(utc, sameInstant), true);
+  assert.equal(isSameMatch(utc, outsideWindow), false);
+});
