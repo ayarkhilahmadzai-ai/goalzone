@@ -1,0 +1,149 @@
+name: Validate GoalZone
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Match identity regression tests
+        run: npm test
+      - name: ESLint check
+        run: npm run lint
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Production build
+        env:
+          # Public, non-functional placeholders for browser smoke testing only.
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+        run: npm run build
+      - name: Smoke test built website over HTTP
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/goalzone-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/goalzone/ -o /tmp/goalzone-index.html; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Preview server did not respond"
+            cat /tmp/goalzone-preview.log
+            exit 1
+          fi
+          echo "Preview responded successfully"
+          test -s /tmp/goalzone-index.html || { echo "HTTP response body is empty"; cat /tmp/goalzone-preview.log; exit 1; }
+          grep -q 'id="root"' /tmp/goalzone-index.html || { echo "Missing React root"; exit 1; }
+          grep -q 'href="/goalzone/goalzone.svg"' /tmp/goalzone-index.html || { echo "Missing base-aware favicon link"; exit 1; }
+          grep -q 'property="og:title"' /tmp/goalzone-index.html || { echo "Missing GoalZone social title"; exit 1; }
+          if grep -q 'bolt.new/static/og_default.png' /tmp/goalzone-index.html; then
+            echo "Template social image must not appear in production HTML"
+            exit 1
+          fi
+          curl --fail --silent --show-error http://127.0.0.1:4173/goalzone/goalzone.svg -o /tmp/goalzone-favicon.svg
+          grep -q '<svg' /tmp/goalzone-favicon.svg || { echo "Invalid favicon response"; exit 1; }
+          grep -q '/assets/' /tmp/goalzone-index.html || { echo "Missing asset links"; exit 1; }
+          assets=$(grep -oE '/goalzone/assets/[^"]+\.(js|css)' /tmp/goalzone-index.html | sort -u)
+          if [ -z "$assets" ]; then
+            echo "No JavaScript or CSS asset URLs found in production HTML"
+            exit 1
+          fi
+          echo "$assets" | grep -qE "\.js$" || { echo "Missing JavaScript asset"; exit 1; }
+          echo "$assets" | grep -qE "\.css$" || { echo "Missing CSS asset"; exit 1; }
+          while IFS= read -r asset; do
+            echo "Checking built asset: $asset"
+            curl --fail --silent --show-error -D /tmp/goalzone-asset-headers "http://127.0.0.1:4173$asset" -o /tmp/goalzone-asset
+            test -s /tmp/goalzone-asset || { echo "Empty asset response: $asset"; exit 1; }
+            case "$asset" in
+              *.js) expected_type='javascript' ;;
+              *.css) expected_type='text/css' ;;
+              *) echo "Unexpected asset type: $asset"; exit 1 ;;
+            esac
+            if ! grep -Eiq "^content-type:.*$expected_type" /tmp/goalzone-asset-headers; then
+              echo "Unexpected content type for $asset (possible HTML fallback)"
+              cat /tmp/goalzone-asset-headers
+              exit 1
+            fi
+          done <<< "$assets"
+          echo "Production HTML and linked assets smoke test passed"
+
+      - name: Smoke test React rendering in headless Chrome
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/goalzone-browser-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/goalzone/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/goalzone-browser-preview.log
+            exit 1
+          fi
+          chrome=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$chrome" ]; then
+            echo "Headless Chrome is not available on this runner"
+            exit 1
+          fi
+          timeout 45 "$chrome" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=10000 --dump-dom http://127.0.0.1:4173/goalzone/ > /tmp/goalzone-rendered.html 2>/tmp/goalzone-chrome.log || {
+            cat /tmp/goalzone-chrome.log
+            exit 1
+          }
+          if grep -Eq '<div id="root"></div>' /tmp/goalzone-rendered.html; then
+            echo "React root remained empty after browser rendering"
+            exit 1
+          fi
+          grep -q 'id="root"' /tmp/goalzone-rendered.html || {
+            echo "React root missing from browser DOM"
+            exit 1
+          }
+          grep -q "Welcome to" /tmp/goalzone-rendered.html || { echo "Home hero did not render"; exit 1; }
+          grep -q "Explore GoalZone" /tmp/goalzone-rendered.html || { echo "Home navigation did not render"; exit 1; }
+          grep -q "Upcoming fixtures" /tmp/goalzone-rendered.html || { echo "Fixture navigation did not render"; exit 1; }
+          echo "Headless Chrome rendered GoalZone home content and navigation"
+
+      - name: Browser interaction smoke test
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/goalzone-interactions-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/goalzone/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/goalzone-interactions-preview.log
+            exit 1
+          fi
+          CHROME_PATH="$(command -v google-chrome)" node tests/browser-smoke.mjs

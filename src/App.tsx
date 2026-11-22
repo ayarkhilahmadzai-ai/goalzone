@@ -86,6 +86,53 @@ type ApiFootballStatistic = {
   }[];
 };
 
+function preserveMatchesOnPartialFailure(
+  current: Match[],
+  previous: Match[],
+  partialFailure: boolean,
+  isSameMatch: (a: Match, b: Match) => boolean
+): Match[] {
+  const visible = [...current];
+  if (!partialFailure) return visible;
+  for (const oldMatch of previous) {
+    // Behåll saknade matcher utan att återinföra dubbletter.
+    // Kolliderande UI-ID:n får inte dölja skilda fixture-ID:n.
+    if (!visible.some((match) => isSameMatch(match, oldMatch))) {
+      visible.push(oldMatch);
+    }
+  }
+  return visible;
+}
+
+function ensureUniqueMatchIds(matches: Match[]): Match[] {
+  // Skydda React-nycklar och detaljvyer även när två olika matcher
+  // råkar få samma interna ID från separata datakällor.
+  const reserved = new Set(matches.map((match) => match.id));
+  const used = new Set<string>();
+  return matches.map((match) => {
+    if (!used.has(match.id)) {
+      used.add(match.id);
+      return match;
+    }
+    let suffix = 2;
+    let uniqueId = `${match.id}--duplicate-${suffix}`;
+    while (reserved.has(uniqueId) || used.has(uniqueId)) {
+      suffix += 1;
+      uniqueId = `${match.id}--duplicate-${suffix}`;
+    }
+    used.add(uniqueId);
+    return { ...match, id: uniqueId };
+  });
+}
+
+function countMatchIds(matches: Match[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const match of matches) {
+    counts.set(match.id, (counts.get(match.id) ?? 0) + 1);
+  }
+  return counts;
+}
+
 function normalizeTeamName(name: string): string {
   return name
     .toLowerCase()
@@ -96,14 +143,24 @@ function normalizeTeamName(name: string): string {
 }
 
 function sameTeam(a: string, b: string): boolean {
-  return normalizeTeamName(a) === normalizeTeamName(b);
+  const normalizedA = normalizeTeamName(a);
+  const normalizedB = normalizeTeamName(b);
+  // Tomma namn eller namn som enbart består av klubbförkortningar
+  // får aldrig räknas som en säker lagmatchning.
+  return normalizedA.length > 0 &&
+    normalizedB.length > 0 &&
+    normalizedA === normalizedB;
 }
 
 function getEventType(
   event: ApiFootballEvent
 ): MatchEvent['type'] | null {
-  const type = (event.type ?? '').toLowerCase();
-  const detail = (event.detail ?? '').toLowerCase();
+  const type = typeof event.type === 'string'
+    ? event.type.trim().toLowerCase()
+    : '';
+  const detail = typeof event.detail === 'string'
+    ? event.detail.trim().toLowerCase()
+    : '';
 
   if (type === 'goal') {
     return 'goal';
@@ -139,26 +196,31 @@ function mapEvents(
 
     const minute = event.time?.elapsed;
 
-    if (typeof minute !== 'number') continue;
+    if (typeof minute !== 'number' || !Number.isSafeInteger(minute) || minute < 0) continue;
 
     const teamName = event.team?.name ?? '';
 
-    let team: 'home' | 'away';
+    // API-namn kan skilja sig från visningsnamn. Använd även kortnamn,
+    // men bara när exakt ett av lagen matchar.
+    const homeMatches = sameTeam(teamName, match.home.name) ||
+      sameTeam(teamName, match.home.short);
+    const awayMatches = sameTeam(teamName, match.away.name) ||
+      sameTeam(teamName, match.away.short);
 
-    if (sameTeam(teamName, match.home.name)) {
-      team = 'home';
-    } else if (sameTeam(teamName, match.away.name)) {
-      team = 'away';
-    } else {
-      // Do not assign an event to the wrong team.
+    if (homeMatches === awayMatches) {
+      // Okänt eller tvetydigt lagnamn: gissa aldrig lag.
       continue;
     }
+
+    const team: 'home' | 'away' = homeMatches ? 'home' : 'away';
 
     result.push({
       minute,
       type,
       team,
-      player: event.player?.name || 'Unknown player',
+      player: typeof event.player?.name === 'string' && event.player.name.trim()
+        ? event.player.name.trim()
+        : 'Okänd spelare',
     });
   }
 
@@ -172,18 +234,23 @@ function mapPlayers(
   substitute: boolean
 ): MatchPlayer[] {
   return players
-    .filter((entry) => Boolean(entry.player?.name))
-    .map((entry, index) => {
+    .filter((entry) => typeof entry.player?.name === 'string' && entry.player.name.trim().length > 0)
+    .map((entry) => {
       const player = entry.player!;
 
       return {
-        id: String(
-          player.id ??
-            `${substitute ? 'sub' : 'start'}-${index}`
-        ),
-        name: player.name!,
-        number: player.number ?? undefined,
-        position: player.pos ?? undefined,
+        id: typeof player.id === 'number' &&
+          Number.isSafeInteger(player.id) &&
+          player.id > 0
+          ? String(player.id)
+          : `name:${player.name!.trim().toLocaleLowerCase('sv')}`,
+        name: player.name!.trim(),
+        number: typeof player.number === 'number' && Number.isSafeInteger(player.number) && player.number > 0
+          ? player.number
+          : undefined,
+        position: typeof player.pos === 'string' && player.pos.trim()
+          ? player.pos.trim()
+          : undefined,
         substitute,
       };
     });
@@ -201,20 +268,59 @@ function mapLineups(
   for (const lineup of rawLineups) {
     const teamName = lineup.team?.name ?? '';
 
-    let side: 'home' | 'away';
+    const homeMatches = sameTeam(teamName, match.home.name) ||
+      sameTeam(teamName, match.home.short);
+    const awayMatches = sameTeam(teamName, match.away.name) ||
+      sameTeam(teamName, match.away.short);
 
-    if (sameTeam(teamName, match.home.name)) {
-      side = 'home';
-    } else if (sameTeam(teamName, match.away.name)) {
-      side = 'away';
-    } else {
-      continue;
-    }
+    // Undvik att placera en laguppställning under fel lag.
+    if (homeMatches === awayMatches) continue;
 
-    result[side] = [
+    const side: 'home' | 'away' = homeMatches ? 'home' : 'away';
+
+    const players = [
       ...mapPlayers(lineup.startXI ?? [], false),
       ...mapPlayers(lineup.substitutes ?? [], true),
     ];
+    // API:t kan skicka flera uppställningsposter för samma lag.
+    // Slå ihop dem utan att skriva över spelare från tidigare poster.
+    const existing = result[side];
+    const combined = [...existing];
+
+    for (const player of players) {
+      const nameKey = player.name.trim().toLocaleLowerCase('sv');
+      const duplicateIndex = combined.findIndex((candidate) => {
+        const candidateName = candidate.name.trim().toLocaleLowerCase('sv');
+        // Två olika giltiga API-ID:n ska inte slås ihop enbart
+        // för att spelarna råkar ha samma namn.
+        const candidateHasId = /^\d+$/.test(candidate.id);
+        const playerHasId = /^\d+$/.test(player.id);
+        if (candidateHasId && playerHasId) {
+          return candidate.id === player.id;
+        }
+        return candidateName === nameKey;
+      });
+
+      if (duplicateIndex === -1) {
+        combined.push(player);
+      } else {
+        const previous = combined[duplicateIndex];
+        // Behåll startspelare framför reservposter och komplettera
+        // saknade uppgifter från den andra posten.
+        const preferred = previous.substitute && !player.substitute
+          ? player
+          : previous;
+        const fallback = preferred === previous ? player : previous;
+        combined[duplicateIndex] = {
+          ...preferred,
+          id: /^\d+$/.test(preferred.id) ? preferred.id : fallback.id,
+          number: preferred.number ?? fallback.number,
+          position: preferred.position ?? fallback.position,
+        };
+      }
+    }
+
+    result[side] = combined;
   }
 
   return result;
@@ -224,75 +330,85 @@ function statisticNumber(
   value: number | string | null | undefined
 ): number | null {
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
+    return Number.isFinite(value) && value >= 0 ? value : null;
   }
 
   if (typeof value !== 'string') {
     return null;
   }
 
-  const parsed = Number(
-    value.replace('%', '').trim()
-  );
+  const normalized = value.trim();
+  // Tillåt vanliga numeriska värden och procentsatser, men inte
+  // godtyckliga strängar där Number() kan ge ett oväntat resultat.
+  if (!/^\d+(?:\.\d+)?%?$/.test(normalized)) return null;
 
-  return Number.isFinite(parsed) ? parsed : null;
+  const parsed = Number(normalized.replace(/%$/, ''));
+
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
 function mapStatistics(
   rawStatistics: ApiFootballStatistic[],
   match: Match
 ): MatchStatistic[] {
-  const home = rawStatistics.find((entry) =>
-    sameTeam(entry.team?.name ?? '', match.home.name)
+  const matchingSide = (name: string): 'home' | 'away' | null => {
+    const homeMatches = sameTeam(name, match.home.name) ||
+      sameTeam(name, match.home.short);
+    const awayMatches = sameTeam(name, match.away.name) ||
+      sameTeam(name, match.away.short);
+    if (homeMatches === awayMatches) return null;
+    return homeMatches ? 'home' : 'away';
+  };
+
+  const homeRows = rawStatistics.filter((entry) =>
+    matchingSide(entry.team?.name ?? '') === 'home'
+  );
+  const awayRows = rawStatistics.filter((entry) =>
+    matchingSide(entry.team?.name ?? '') === 'away'
   );
 
-  const away = rawStatistics.find((entry) =>
-    sameTeam(entry.team?.name ?? '', match.away.name)
-  );
-
-  if (!home || !away) {
+  if (homeRows.length === 0 || awayRows.length === 0) {
     return [];
   }
 
-  const awayValues = new Map<
-    string,
-    number
-  >();
+  // Samla statistik per lag. Om API:t ger olika värden för samma
+  // statistiktyp går det inte att avgöra vilket som är korrekt.
+  const collectValues = (statistics: ApiFootballStatistic['statistics']) => {
+    const values = new Map<string, { name: string; value: number | null }>();
 
-  for (const statistic of away.statistics ?? []) {
-    if (!statistic.type) continue;
+    for (const statistic of statistics ?? []) {
+      if (typeof statistic.type !== 'string' || !statistic.type.trim()) continue;
+      const name = statistic.type.trim();
+      const key = name.toLocaleLowerCase('en');
+      const value = statisticNumber(statistic.value);
+      if (value === null) continue;
 
-    const value = statisticNumber(statistic.value);
-
-    if (value !== null) {
-      awayValues.set(statistic.type, value);
+      const previous = values.get(key);
+      if (!previous) {
+        values.set(key, { name, value });
+      } else if (previous.value !== null && previous.value !== value) {
+        // En konflikt förblir ogiltig även om fler dubletter följer.
+        values.set(key, { name: previous.name, value: null });
+      }
     }
-  }
 
+    return values;
+  };
+
+  // En match kan ha flera statistikblock per lag. Samla alla block
+  // innan dubletter och motstridiga värden kontrolleras.
+  const homeValues = collectValues(homeRows.flatMap((row) => row.statistics ?? []));
+  const awayValues = collectValues(awayRows.flatMap((row) => row.statistics ?? []));
   const result: MatchStatistic[] = [];
 
-  for (const statistic of home.statistics ?? []) {
-    if (!statistic.type) continue;
-
-    const homeValue = statisticNumber(
-      statistic.value
-    );
-
-    const awayValue = awayValues.get(
-      statistic.type
-    );
-
-    if (
-      homeValue === null ||
-      awayValue === undefined
-    ) {
-      continue;
-    }
+  for (const [key, homeStat] of homeValues) {
+    const awayStat = awayValues.get(key);
+    if (homeStat.value === null || !awayStat || awayStat.value === null) continue;
 
     result.push({
-      name: statistic.type,
-      home: homeValue,
-      away: awayValue,
+      name: homeStat.name,
+      home: homeStat.value,
+      away: awayStat.value,
     });
   }
 
@@ -375,6 +491,8 @@ function AppInner() {
   const [route, setRoute] =
     useState<Route>(parseHash());
 
+  const [navigationRequest, setNavigationRequest] = useState<{ section: 'home' | 'fixtures' | 'live'; serial: number }>({ section: 'home', serial: 0 });
+
   const [activeLeague, setActiveLeague] =
     useState('all');
 
@@ -389,6 +507,9 @@ function AppInner() {
   const [loading, setLoading] =
     useState(true);
 
+  const [lastSuccessfulFetch, setLastSuccessfulFetch] =
+    useState<number | null>(null);
+
   const [
     loadError,
     setLoadError,
@@ -398,6 +519,8 @@ function AppInner() {
     detailsLoadingId,
     setDetailsLoadingId,
   ] = useState<string | null>(null);
+
+  const [detailsErrorId, setDetailsErrorId] = useState<string | null>(null);
 
   const initialLoadRef = useRef(true);
   const matchesRequestRef = useRef(false);
@@ -462,77 +585,285 @@ function AppInner() {
         );
       }
 
-      const manualMatches = (
-        (dbResult.data ?? []) as MatchRow[]
-      ).map(rowToMatch);
+      // Skydda matchlistan även om databassvaret är felaktigt.
+      const dbResponseMalformed = !dbResult.error &&
+        !Array.isArray(dbResult.data);
+      const dbRows: MatchRow[] = Array.isArray(dbResult.data)
+        ? dbResult.data
+        : [];
+      const manualMatches = dbRows
+        .filter((row) =>
+          row !== null &&
+          typeof row === 'object' &&
+          typeof row.id === 'string' &&
+          typeof row.home_team === 'string' && row.home_team.trim().length > 0 &&
+          typeof row.away_team === 'string' && row.away_team.trim().length > 0 &&
+          typeof row.home_short === 'string' &&
+          typeof row.away_short === 'string' &&
+          typeof row.league_id === 'string' && row.league_id.trim().length > 0 &&
+          typeof row.kickoff === 'string' &&
+          Number.isFinite(Date.parse(row.kickoff)) &&
+          (row.status === 'upcoming' || row.status === 'live' || row.status === 'finished') &&
+          typeof row.home_score === 'number' &&
+          Number.isSafeInteger(row.home_score) && row.home_score >= 0 &&
+          typeof row.away_score === 'number' &&
+          Number.isSafeInteger(row.away_score) && row.away_score >= 0
+        )
+        .map(rowToMatch);
 
+      // Ett lyckat HTTP-svar garanterar inte att API:t skickar
+      // en lista. Undvik att krascha om svaret är felaktigt.
+      const apiResponseMalformed = !footballResult.error &&
+        !Array.isArray(footballResult.data?.matches);
       const apiRows: MatchRow[] =
-        footballResult.error
-          ? []
-          : footballResult.data?.matches ?? [];
+        !footballResult.error && Array.isArray(footballResult.data?.matches)
+          ? footballResult.data.matches
+          : [];
+
+      // Om båda källorna misslyckas ska tidigare matcher ligga kvar.
+      // Ett felaktigt svar räknas också som misslyckad hämtning.
+      if ((dbResult.error || dbResponseMalformed) &&
+          (footballResult.error || apiResponseMalformed)) {
+        setLoadError(true);
+        return;
+      }
+
+      // Hoppa över enskilda trasiga API-poster i stället för att
+      // låta dem avbryta hela matchlistan.
+      const validApiRows = apiRows.filter((m) =>
+        m !== null &&
+        typeof m === 'object' &&
+        typeof m.home_team === 'string' && m.home_team.trim().length > 0 &&
+        typeof m.away_team === 'string' && m.away_team.trim().length > 0 &&
+        typeof m.home_short === 'string' &&
+        typeof m.away_short === 'string' &&
+        typeof m.league_id === 'string' && m.league_id.trim().length > 0 &&
+        typeof m.kickoff === 'string' &&
+        Number.isFinite(Date.parse(m.kickoff)) &&
+        (m.status === 'upcoming' || m.status === 'live' || m.status === 'finished') &&
+        typeof m.home_score === 'number' && Number.isSafeInteger(m.home_score) && m.home_score >= 0 &&
+        typeof m.away_score === 'number' && Number.isSafeInteger(m.away_score) && m.away_score >= 0
+      );
+
+      // Ett delvis skadat svar ska inte radera tidigare matcher
+      // som filtrerades bort från den aktuella uppdateringen.
+      const dbRowsIncomplete = dbRows.length > manualMatches.length;
+      const apiRowsIncomplete = apiRows.length > validApiRows.length;
 
       const automaticMatches: Match[] =
-        apiRows.map((m) =>
+        validApiRows.map((m) =>
           rowToMatch({
             ...m,
-            id:
-              `api-${m.home_short}-` +
-              `${m.away_short}-${m.kickoff}`,
+            id: m.api_football_fixture_id != null &&
+              typeof m.api_football_fixture_id === 'number' &&
+              Number.isSafeInteger(m.api_football_fixture_id) &&
+              m.api_football_fixture_id > 0
+              ? `api-fixture-${m.api_football_fixture_id}`
+              : `api-${m.league_id}-${m.home_short}-` +
+                `${m.away_short}-${m.kickoff}`,
+            // Ogiltiga fixture-ID:n får inte användas för att
+            // matcha eller återanvända detaljer från andra matcher.
+            api_football_fixture_id:
+              typeof m.api_football_fixture_id === 'number' &&
+              Number.isSafeInteger(m.api_football_fixture_id) &&
+              m.api_football_fixture_id > 0
+                ? m.api_football_fixture_id
+                : null,
             created_at:
               new Date().toISOString(),
           })
         );
 
-      const allMatches = [
-        ...automaticMatches,
-      ];
+      // Undvik dubletter mellan manuella och automatiska matcher.
+      // Kräv samma liga, lag och nästan samma avsparkstid.
+      const normalizeTeam = (name: string) =>
+        name.toLowerCase().normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '');
+
+      const isSameMatch = (a: Match, b: Match) => {
+        if (a.leagueId !== b.leagueId) return false;
+
+        // Två verifierade fixture-ID:n får aldrig förväxlas,
+        // även om interna UI-ID:n råkar vara identiska.
+        if (
+          a.apiFootballFixtureId != null &&
+          b.apiFootballFixtureId != null
+        ) {
+          return a.apiFootballFixtureId === b.apiFootballFixtureId;
+        }
+
+        // Interna UI-ID:n kan återanvändas eller kollidera.
+        // Utan två verifierade fixture-ID:n krävs därför alltid
+        // samma lag och närliggande avsparkstid.
+        const aTime = Date.parse(a.kickoff);
+        const bTime = Date.parse(b.kickoff);
+        const homeA = normalizeTeam(a.home.name);
+        const homeB = normalizeTeam(b.home.name);
+        const awayA = normalizeTeam(a.away.name);
+        const awayB = normalizeTeam(b.away.name);
+        return (
+          Number.isFinite(aTime) &&
+          Number.isFinite(bTime) &&
+          Math.abs(aTime - bTime) <= 15 * 60 * 1000 &&
+          homeA.length > 0 && awayA.length > 0 &&
+          homeA === homeB && awayA === awayB
+        );
+      };
+
+      // API:t kan skicka samma match flera gånger. Behåll bara
+      // en post per match innan manuella matcher läggs till.
+      const allMatches: Match[] = [];
+      for (const automaticMatch of automaticMatches) {
+        if (!allMatches.some((existing) =>
+          isSameMatch(existing, automaticMatch)
+        )) {
+          allMatches.push(automaticMatch);
+        }
+      }
 
       for (const manualMatch of manualMatches) {
-        if (
-          !allMatches.some(
-            (m) =>
-              m.id === manualMatch.id
-          )
-        ) {
-          allMatches.push(
-            manualMatch
-          );
+        const existingIndex = allMatches.findIndex(
+          (match) => isSameMatch(match, manualMatch)
+        );
+
+        if (existingIndex === -1) {
+          allMatches.push(manualMatch);
+          continue;
         }
+
+        // API-källan behåller resultat och status.
+        // Manuellt angiven arena fyller endast tomt fält.
+        const automaticMatch = allMatches[existingIndex];
+        allMatches[existingIndex] = {
+          ...automaticMatch,
+          venue: automaticMatch.venue || manualMatch.venue,
+        };
       }
 
       // Behåll redan hämtade detaljer när samma match uppdateras.
       setMatches((previous) => {
+        // Ett kolliderande UI-ID får inte godtyckligt välja den
+        // sista av flera gamla matcher. Bara entydiga ID:n kan
+        // användas för direkt återkoppling till tidigare data.
+        const oldIdCounts = countMatchIds(previous);
         const oldById = new Map(
-          previous.map((match) => [match.id, match])
+          previous
+            .filter((previousMatch) =>
+              oldIdCounts.get(previousMatch.id) === 1
+            )
+            .map((previousMatch) => [previousMatch.id, previousMatch])
         );
 
-        return allMatches.map((match) => {
-          const old = oldById.get(match.id);
+        // Om bara en källa misslyckas: behåll tidigare matcher som
+        // saknas i det partiella svaret tills båda källorna fungerar igen.
+        // Undvik att lägga till en gammal dubblett av en uppdaterad match.
+        const partialFailure = Boolean(
+          dbResult.error || footballResult.error ||
+          dbResponseMalformed || apiResponseMalformed ||
+          dbRowsIncomplete || apiRowsIncomplete
+        );
+        const visibleMatches = preserveMatchesOnPartialFailure(
+          allMatches, previous, partialFailure, isSameMatch
+        );
 
+        // Behåll samma UI-ID vid mindre ändringar av avsparkstid.
+        // Kräver en entydig matchning för att inte blanda ihop matcher.
+        const claimedIds = new Set<string>();
+        const visibleIdCounts = countMatchIds(visibleMatches);
+
+        const reconciledMatches = visibleMatches.map((match) => {
+          // Om det nya svaret innehåller samma UI-ID flera gånger,
+          // välj inte godtyckligt vilken post som får gamla detaljer.
+          let old = claimedIds.has(match.id) ||
+            visibleIdCounts.get(match.id) !== 1
+            ? undefined
+            : oldById.get(match.id);
+          // Även ett identiskt UI-ID kan peka på en annan match
+          // efter en uppdatering. Verifiera matchidentiteten innan
+          // tidigare detaljer eller UI-ID återanvänds.
+          if (old && !isSameMatch(old, match)) old = undefined;
+
+          // API:ts fixture-ID är stabilare än lagnamn och avsparkstid.
+          // Använd det först när exakt en tidigare match har samma ID.
+          if (!old && match.apiFootballFixtureId != null) {
+            const fixtureCandidates = previous.filter((candidate) =>
+              !claimedIds.has(candidate.id) &&
+              oldIdCounts.get(candidate.id) === 1 &&
+              candidate.leagueId === match.leagueId &&
+              candidate.apiFootballFixtureId === match.apiFootballFixtureId
+            );
+            if (fixtureCandidates.length === 1) old = fixtureCandidates[0];
+          }
+
+          if (!old) {
+            const candidates = previous.filter((candidate) => {
+              if (claimedIds.has(candidate.id) ||
+                  oldIdCounts.get(candidate.id) !== 1) return false;
+              if (candidate.leagueId !== match.leagueId) return false;
+              const homeName = normalizeTeam(match.home.name);
+              const awayName = normalizeTeam(match.away.name);
+              if (
+                !homeName || !awayName ||
+                normalizeTeam(candidate.home.name) !== homeName ||
+                normalizeTeam(candidate.away.name) !== awayName
+              ) return false;
+              if (
+                candidate.apiFootballFixtureId != null &&
+                match.apiFootballFixtureId != null &&
+                candidate.apiFootballFixtureId !== match.apiFootballFixtureId
+              ) return false;
+
+              const previousTime = Date.parse(candidate.kickoff);
+              const currentTime = Date.parse(match.kickoff);
+              return Number.isFinite(previousTime) &&
+                Number.isFinite(currentTime) &&
+                // Utan gemensamt fixture-ID: använd samma snäva
+                // tidsgräns som dublettkontrollen. Större ändringar
+                // kräver verifierat fixture-ID för säker koppling.
+                Math.abs(previousTime - currentTime) <= 15 * 60 * 1000;
+            });
+
+            if (candidates.length === 1) old = candidates[0];
+          }
+
+          if (!old || claimedIds.has(old.id)) return match;
+          // Kontrollera även här att reservmatchningen inte har valt
+          // ett tidigare UI-ID som tillhör flera gamla matcher.
+          if (oldIdCounts.get(old.id) !== 1) return match;
+          // Återanvänd aldrig en tidigare matchs ID över ligagränser,
+          // även om två källor råkar använda samma interna ID.
+          if (old.leagueId !== match.leagueId) return match;
+          // Ett återanvänt UI-ID får inte koppla ihop två
+          // olika matcher med olika verifierade fixture-ID:n.
           if (
-            !old ||
-            old.apiFootballFixtureId !==
-              match.apiFootballFixtureId
-          ) {
-            return match;
+            old.apiFootballFixtureId != null &&
+            match.apiFootballFixtureId != null &&
+            old.apiFootballFixtureId !== match.apiFootballFixtureId
+          ) return match;
+          claimedIds.add(old.id);
+
+          const stableMatch = { ...match, id: old.id };
+          if (old.apiFootballFixtureId !== match.apiFootballFixtureId) {
+            return stableMatch;
           }
 
           return {
-            ...match,
+            ...stableMatch,
             details: old.details,
             events: old.events,
           };
         });
+        return ensureUniqueMatchIds(reconciledMatches);
       });
 
-      setLoadError(false);
-
-      if (
-        dbResult.error &&
-        footballResult.error
-      ) {
-        setLoadError(true);
-      }
+      const partialFailure = Boolean(
+        dbResult.error || footballResult.error ||
+        dbResponseMalformed || apiResponseMalformed ||
+        dbRowsIncomplete || apiRowsIncomplete
+      );
+      setLoadError(partialFailure);
+      if (!partialFailure) setLastSuccessfulFetch(Date.now());
     } catch (error) {
       console.error(
         'Error loading matches:',
@@ -608,11 +939,30 @@ function AppInner() {
 
     let cancelled = false;
     let inFlight = false;
+    let retryTimer: number | null = null;
+    let retryCount = 0;
+    let retryPending = false;
+    let lastLiveAttemptAt = 0;
 
     const matchId = selectedMatchId;
     const fixtureId = selectedFixtureId;
     const isLive =
       selectedMatch?.status === 'live';
+
+    // För icke-LIVE-matcher: ett begränsat återförsök efter fel.
+    // LIVE-matcher använder redan sitt minutintervall.
+    function scheduleRetry() {
+      if (cancelled || isLive || retryTimer !== null || retryCount >= 1) return;
+      retryCount += 1;
+      retryTimer = window.setTimeout(() => {
+        retryTimer = null;
+        if (document.visibilityState !== 'visible' || inFlight) {
+          retryPending = true;
+          return;
+        }
+        void refreshDetails(true);
+      }, 30_000);
+    }
 
     async function refreshDetails(
       force: boolean
@@ -624,6 +974,9 @@ function AppInner() {
       ) {
         return;
       }
+
+      // Flikbyte och minutintervall kan annars trigga täta LIVE-anrop.
+      if (isLive && Date.now() - lastLiveAttemptAt < 30_000) return;
 
       const current = selectedMatchRef.current;
 
@@ -643,6 +996,7 @@ function AppInner() {
       }
 
       inFlight = true;
+      if (isLive) lastLiveAttemptAt = Date.now();
 
       if (!current.details) {
         setDetailsLoadingId(matchId);
@@ -652,26 +1006,75 @@ function AppInner() {
         const details =
           await fetchMatchDetails(current);
 
-        if (
-          cancelled ||
-          !details
-        ) {
+        if (cancelled) return;
+        if (!details) {
+          setDetailsErrorId(matchId);
+          scheduleRetry();
           return;
         }
+        const hasDetailData = details.events.length > 0 ||
+          details.lineups.home.length > 0 ||
+          details.lineups.away.length > 0 ||
+          details.statistics.length > 0;
+
+        // En match kan sakna statistik även under LIVE eller efter
+        // slutsignal. Ett tomt svar är bara ett uppdateringsfel om
+        // vi tidigare har fått riktiga detaljer som nu saknas.
+        if (!hasDetailData && current.details?.fetchedAt != null) {
+          setDetailsErrorId(matchId);
+          scheduleRetry();
+          return;
+        }
+        if (retryTimer !== null) {
+          window.clearTimeout(retryTimer);
+          retryTimer = null;
+        }
+        retryCount = 0;
+        retryPending = false;
+        setDetailsErrorId(null);
 
         setMatches((previous) =>
           previous.map((match) =>
             match.id === matchId &&
             match.apiFootballFixtureId === fixtureId
-              ? {
-                  ...match,
-                  details,
-                  events: details.events,
-                }
+              ? (() => {
+                  // Ett tillfälligt tomt detaljsvar ska inte radera
+                  // redan visade händelser, laguppställningar eller statistik.
+                  const previousDetails = match.details;
+                  const mergedDetails: MatchDetails = {
+                    ...details,
+                    fetchedAt: hasDetailData
+                      ? Date.now()
+                      : previousDetails?.fetchedAt,
+                    events: details.events.length > 0
+                      ? details.events
+                      : previousDetails?.events ?? details.events,
+                    lineups: {
+                      home: details.lineups.home.length > 0
+                        ? details.lineups.home
+                        : previousDetails?.lineups.home ?? [],
+                      away: details.lineups.away.length > 0
+                        ? details.lineups.away
+                        : previousDetails?.lineups.away ?? [],
+                    },
+                    statistics: details.statistics.length > 0
+                      ? details.statistics
+                      : previousDetails?.statistics ?? [],
+                  };
+                  return {
+                    ...match,
+                    details: mergedDetails,
+                    events: mergedDetails.events,
+                  };
+                })()
               : match
           )
         );
       } catch (error) {
+        if (!cancelled) {
+          setDetailsErrorId(matchId);
+          scheduleRetry();
+        }
         console.error(
           'Error refreshing match details:',
           error
@@ -681,12 +1084,23 @@ function AppInner() {
 
         if (!cancelled) {
           setDetailsLoadingId(null);
+          // Ett återförsök som väntade på ett långsamt anrop
+          // ska inte fastna när fliken redan är synlig.
+          if (retryPending && document.visibilityState === 'visible') {
+            retryPending = false;
+            retryTimer = window.setTimeout(() => {
+              retryTimer = null;
+              void refreshDetails(true);
+            }, 1000);
+          }
         }
       }
     }
 
-    // Hämta detaljer vid första öppningen.
-    void refreshDetails(false);
+    // Hämta detaljer vid öppning. När matchen avslutas görs en
+    // sista uppdatering även om tidigare LIVE-detaljer finns cachade.
+    // För övriga matcher återanvänds redan hämtade detaljer.
+    void refreshDetails(selectedMatch?.status === 'finished');
 
     // Fortsätt uppdatera endast LIVE-matcher.
     const timer = isLive
@@ -697,10 +1111,11 @@ function AppInner() {
       : null;
 
     const onVisibilityChange = () => {
-      if (
-        document.visibilityState === 'visible' &&
-        isLive
-      ) {
+      if (document.visibilityState !== 'visible') return;
+      if (retryPending) {
+        retryPending = false;
+        void refreshDetails(true);
+      } else if (isLive) {
         void refreshDetails(true);
       }
     };
@@ -715,6 +1130,9 @@ function AppInner() {
 
       if (timer !== null) {
         window.clearInterval(timer);
+      }
+      if (retryTimer !== null) {
+        window.clearTimeout(retryTimer);
       }
 
       document.removeEventListener(
@@ -736,9 +1154,10 @@ function AppInner() {
     [matches]
   );
 
-  const handleNavigate = () => {
+  const handleNavigate = (section: 'home' | 'fixtures' | 'live') => {
     window.location.hash = '#/';
     setSelectedMatchId(null);
+    setNavigationRequest((previous) => ({ section, serial: previous.serial + 1 }));
   };
 
   if (selectedMatch) {
@@ -758,6 +1177,7 @@ function AppInner() {
           )}
 
           <MatchPage
+            detailsError={detailsErrorId === selectedMatch.id}
             match={selectedMatch}
             onBack={() =>
               setSelectedMatchId(null)
@@ -813,6 +1233,7 @@ function AppInner() {
 
       <main className="flex-1">
         <Home
+          navigationRequest={navigationRequest}
           leagues={SAMPLE_LEAGUES}
           matches={matches}
           activeLeague={activeLeague}
@@ -820,6 +1241,7 @@ function AppInner() {
           onSelectMatch={setSelectedMatchId}
           loading={loading}
           loadError={loadError}
+          lastSuccessfulFetch={lastSuccessfulFetch}
           onRetry={loadMatches}
         />
       </main>

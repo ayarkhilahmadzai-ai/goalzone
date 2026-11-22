@@ -12,8 +12,8 @@ function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
       <div className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-2.5 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
-        <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
-        LIVE {match.minute}&apos;
+        <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400 motion-reduce:animate-none" />
+        LIVE {match.minute != null ? `${match.minute}'` : ''}
       </div>
     );
   }
@@ -39,46 +39,48 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="group card relative overflow-hidden p-5 text-left transition-all duration-300 hover:border-pitch-500/30 hover:shadow-neon-sm hover:-translate-y-0.5"
+      aria-label={`${match.home.name} mot ${match.away.name}, ${match.league}, ${match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'avslutad' : 'kommande'}`}
+      className="group card relative flex min-h-48 w-full flex-col overflow-hidden p-4 text-left transition-colors duration-200 motion-reduce:transition-none active:border-pitch-500/50 active:bg-white/5 hover:border-pitch-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400 sm:min-h-52 sm:p-5"
     >
-      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pitch-500/0 blur-3xl transition-all duration-500 group-hover:bg-pitch-500/10" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pitch-500/0 blur-3xl transition-all duration-500 motion-reduce:transition-none group-hover:bg-pitch-500/10" />
 
-      <div className="relative flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-ink-400">
+      <div className="relative flex flex-wrap items-center justify-between gap-2">
+        <span className="min-w-0 break-words text-xs font-medium uppercase tracking-wider text-ink-400">
           {match.league}
         </span>
         <StatusBadge match={match} />
       </div>
 
-      <div className="relative mt-5 space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+      <div className="relative mt-4 flex-1 space-y-4 sm:mt-5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <TeamCrest team={match.home} />
-            <span className="truncate text-sm font-semibold text-ink-100">{match.home.name}</span>
+            <span className="min-w-0 break-words text-sm font-semibold leading-snug text-ink-100 sm:text-base">{match.home.name}</span>
           </div>
           {showScore && (
-            <span className={`font-display text-2xl font-bold tabular-nums ${isLive ? 'text-pitch-400' : 'text-ink-100'}`}>
+            <span className={`shrink-0 font-display text-2xl font-bold tabular-nums ${isLive ? 'text-pitch-400' : 'text-ink-100'}`}>
               {match.homeScore}
             </span>
           )}
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <TeamCrest team={match.away} />
-            <span className="truncate text-sm font-semibold text-ink-100">{match.away.name}</span>
+            <span className="min-w-0 break-words text-sm font-semibold leading-snug text-ink-100">{match.away.name}</span>
           </div>
           {showScore && (
-            <span className={`font-display text-2xl font-bold tabular-nums ${isLive ? 'text-pitch-400' : 'text-ink-100'}`}>
+            <span className={`shrink-0 font-display text-2xl font-bold tabular-nums ${isLive ? 'text-pitch-400' : 'text-ink-100'}`}>
               {match.awayScore}
             </span>
           )}
         </div>
       </div>
 
-      <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3">
-        <span className="truncate text-xs text-ink-500">{match.venue}</span>
+      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3 sm:mt-5">
+        <span className="min-w-0 flex-1 truncate text-xs text-ink-500">{match.venue}</span>
         {canWatch ? (
           <span className="flex items-center gap-1 rounded-full bg-pitch-500/15 px-2.5 py-1 text-xs font-semibold text-pitch-400 ring-1 ring-pitch-500/20">
             <Play className="h-3 w-3 fill-pitch-400" /> Watch Live

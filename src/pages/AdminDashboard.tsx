@@ -147,7 +147,6 @@ export default function AdminDashboard() {
     }
 
     const payload = matchToRow({
-      id: form.id ?? '',
       league: form.league,
       leagueId: form.league_id,
       home: { name: form.home_team, short: form.home_short, color: form.home_color },
@@ -158,8 +157,6 @@ export default function AdminDashboard() {
       minute: form.minute === '' ? undefined : Number(form.minute),
       kickoff: fromLocalInput(form.kickoff),
       venue: form.venue,
-      events: [],
-      streamAuthorized: false,
       streamUrl: form.stream_url || undefined,
       embedUrl: form.embed_url || undefined,
     });

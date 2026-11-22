@@ -1,6 +1,5 @@
 import { CalendarDays, Radio, Trophy, ChevronRight, Info, AlertCircle } from 'lucide-react';
 import type { League, Match } from '@/types';
-import { formatKickoff } from '@/data';
 import LeagueFilter from '@/components/LeagueFilter';
 import MatchCard from '@/components/MatchCard';
 

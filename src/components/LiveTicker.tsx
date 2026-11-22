@@ -1,6 +1,4 @@
-import { Radio } from 'lucide-react';
 import type { Match } from '@/types';
-import { formatTimeShort } from '@/data';
 import TeamCrest from './TeamCrest';
 
 interface LiveTickerProps {
@@ -16,12 +14,13 @@ export default function LiveTicker({ matches, onSelect }: LiveTickerProps) {
     <div className="relative overflow-hidden border-y border-white/5 bg-ink-900/80">
       <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-ink-900 to-transparent" />
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-ink-900 to-transparent" />
-      <div className="flex w-max animate-ticker">
+      <div className="flex w-max animate-ticker motion-reduce:animate-none motion-reduce:overflow-x-auto">
         {items.map((m, i) => (
           <button
             key={`${m.id}-${i}`}
             onClick={() => onSelect(m.id)}
-            className="flex items-center gap-2.5 px-5 py-2.5 text-sm transition-colors hover:bg-white/5"
+            aria-label={`${m.home.name} mot ${m.away.name}, ${m.homeScore}–${m.awayScore}, öppna matchdetaljer`}
+            className="flex min-h-11 items-center gap-2.5 px-5 py-2.5 text-sm transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
           >
             <span className="flex items-center gap-1 text-pitch-400">
               <span className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
