@@ -106,7 +106,7 @@ function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
       <div aria-label={typeof match.minute === 'number' && Number.isFinite(match.minute) && match.minute >= 0 ? undefined : 'Matchen pågår, giltig matchminut saknas'} className="flex items-center gap-1.5 rounded-full bg-pitch-500/15 px-3 py-1 text-xs font-bold text-pitch-400 ring-1 ring-pitch-500/30">
-        <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400" />
+        <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-live rounded-full bg-pitch-400 motion-reduce:animate-none" />
         LIVE{' '}
         {typeof match.minute === 'number' && Number.isFinite(match.minute) && match.minute >= 0 ? (
           <LiveMatchClock match={match} />
@@ -204,7 +204,7 @@ export default function MatchPage({
     currentTime - detailsFetchedAt > 2 * 60 * 1000;
 
   return (
-    <div className="container-app min-w-0 animate-fade-in py-4 pb-24 sm:py-10 sm:pb-10">
+    <div className="container-app min-w-0 animate-fade-in motion-reduce:animate-none py-4 pb-24 sm:py-10 sm:pb-10">
       <button
         onClick={onBack}
         className="mb-4 flex min-h-12 items-center gap-2 rounded-lg px-3 text-sm font-medium text-ink-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-400"
@@ -351,9 +351,9 @@ export default function MatchPage({
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Öppna officiell livesändning för ${match.home.name} mot ${match.away.name} i en ny flik`}
-                      className="group flex h-16 w-16 items-center justify-center rounded-full bg-pitch-500/20 ring-2 ring-pitch-500/40 transition-all hover:bg-pitch-500/30 hover:ring-pitch-500/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pitch-400"
+                      className="group flex h-16 w-16 items-center justify-center rounded-full bg-pitch-500/20 ring-2 ring-pitch-500/40 transition-all motion-reduce:transition-none hover:bg-pitch-500/30 hover:ring-pitch-500/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pitch-400"
                     >
-                      <Play aria-hidden="true" className="h-7 w-7 fill-pitch-400 text-pitch-400 transition-transform group-hover:scale-110" />
+                      <Play aria-hidden="true" className="h-7 w-7 fill-pitch-400 text-pitch-400 transition-transform motion-reduce:transform-none motion-reduce:transition-none group-hover:scale-110 motion-reduce:group-hover:scale-100" />
                     </a>
 
                     <div>
