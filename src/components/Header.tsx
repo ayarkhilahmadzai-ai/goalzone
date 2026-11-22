@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Menu, X, Activity } from 'lucide-react';
 
 interface HeaderProps {
-  onNavigate: (route: 'home') => void;
+  onNavigate: (route: 'home' | 'fixtures' | 'live') => void;
   liveCount: number;
 }
 
@@ -10,11 +10,11 @@ export default function Header({ onNavigate, liveCount }: HeaderProps) {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { label: 'Matches', route: 'home' as const },
-    { label: 'Live', route: 'home' as const, badge: liveCount },
+    { label: 'Matches', route: 'fixtures' as const },
+    { label: 'Live', route: 'live' as const, badge: liveCount },
   ];
 
-  const go = (route: 'home') => {
+  const go = (route: 'home' | 'fixtures' | 'live') => {
     onNavigate(route);
     setOpen(false);
   };
