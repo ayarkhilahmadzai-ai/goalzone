@@ -287,3 +287,25 @@ test('UI-ID-generatorn hoppar över flera reserverade dublettsuffix', () => {
   assert.deepEqual(ensureUniqueMatchIds(result), result);
   assert.equal(input[1].id, 'same');
 });
+
+test('tomt partiellt API-svar behåller tidigare matcher tills återhämtning', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('function preserveMatchesOnPartialFailure(');
+  const end = app.indexOf('function ensureUniqueMatchIds(', start);
+  assert.ok(start !== -1 && end > start);
+  const extracted = app.slice(start, end)
+    .replace('current: Match[]', 'current')
+    .replace('previous: Match[]', 'previous')
+    .replace('partialFailure: boolean', 'partialFailure')
+    .replace('isSameMatch: (a: Match, b: Match) => boolean', 'isSameMatch')
+    .replace('): Match[]', ')');
+  const preserve = new Function(extracted + '\nreturn preserveMatchesOnPartialFailure;')();
+  const previous = [match(1001), match(1002)];
+  const duringOutage = preserve([], previous, true, isSameMatch);
+  assert.deepEqual(duringOutage.map((item) => item.apiFootballFixtureId), [1001, 1002]);
+  assert.deepEqual(preserve([], duringOutage, true, isSameMatch).map(
+    (item) => item.apiFootballFixtureId
+  ), [1001, 1002]);
+  assert.deepEqual(preserve([], duringOutage, false, isSameMatch), []);
+  assert.equal(previous.length, 2);
+});
