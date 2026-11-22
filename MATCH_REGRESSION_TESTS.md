@@ -4,10 +4,12 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 
 ## Automatiskt verifierat
 
-- [x] 25 matchidentitets- och regressionsfall, inklusive omordning av matcher med kolliderande UI-ID:n, passerade i GitHub Actions #169.
-- [x] ESLint och TypeScript passerade i GitHub Actions #169.
-- [x] Produktionsbygget passerade i GitHub Actions #169.
-- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` samt verifierad hämtning och korrekt MIME-typ för både JavaScript- och CSS-filer passerade i GitHub Actions #169.
+- [x] 25 matchidentitets- och regressionsfall, inklusive omordning av matcher med kolliderande UI-ID:n, passerade i GitHub Actions #172.
+- [x] ESLint och TypeScript passerade i GitHub Actions #172.
+- [x] Produktionsbygget passerade i GitHub Actions #172.
+- [x] HTTP-smoketest av produktionsversionen under `/goalzone/` samt verifierad hämtning och korrekt MIME-typ för både JavaScript- och CSS-filer passerade i GitHub Actions #172.
+
+- [x] Headless Chrome renderade en icke-tom React-rot från produktionsbygget i GitHub Actions #172 (med isolerade testvärden för Supabase). Detta testar inte klick eller verkliga API-svar.
 
 ## Praktisk manuell testprocedur
 
@@ -20,7 +22,7 @@ Det här dokumentet beskriver testfall som behöver verifieras innan ändringarn
 7. Upprepa med kolliderande interna UI-ID:n. **Förväntat:** inga dubbla React-nycklar, ingen förväxling av matchdetaljer.
 8. Dokumentera för varje scenario: testdata/fixture-ID:n, observerat antal matchkort, rätt/fel detaljvy, konsolfel och resultat. Markera checklistan först när scenariot faktiskt har körts.
 
-**Begränsning:** GitHub Actions kör enhetskontroller och produktionsbygge, inte dessa webbläsarscenarier. Gränssnittstesterna är därför fortfarande öppna.
+**Begränsning:** GitHub Actions kör enhetstester, produktionsbygge och en grundläggande Chrome-renderingskontroll, men inte dessa interaktiva webbläsarscenarier. Gränssnittstesterna är därför fortfarande öppna.
 
 ## Protokoll för webbläsarverifiering
 
@@ -60,10 +62,10 @@ Fyll i tabellen först när respektive scenario faktiskt har körts i en separat
 
 ## Validering
 
-- [x] `npm run typecheck` (GitHub Actions #169)
-- [x] `npm run lint` (GitHub Actions #169)
-- [x] `npm run build` (GitHub Actions #169)
-- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt hämtbara JavaScript- och CSS-resurser med korrekta MIME-typer (GitHub Actions #169).
+- [x] `npm run typecheck` (GitHub Actions #172)
+- [x] `npm run lint` (GitHub Actions #172)
+- [x] `npm run build` (GitHub Actions #172)
+- [x] Produktionsversionen svarar över HTTP på `/goalzone/` och innehåller React-rot samt hämtbara JavaScript- och CSS-resurser med korrekta MIME-typer (GitHub Actions #172).
 - [ ] Kontrollera manuellt i gränssnittet med realistiska API-svar.
 - [ ] Dokumentera observerat resultat för varje testfall.
 
