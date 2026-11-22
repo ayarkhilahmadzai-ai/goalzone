@@ -19,6 +19,14 @@ try {
   await page.getByRole('button', { name: /Back to Home/i }).click();
   await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
 
+  // Keyboard users can reach the homepage actions and activate them.
+  const liveAction = page.getByRole('button', { name: /Watch live/i });
+  await liveAction.focus();
+  assert.equal(await liveAction.evaluate((element) => element === document.activeElement), true);
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  await page.getByRole('button', { name: /Back to Home/i }).click();
+
   await page.getByRole('button', { name: /Upcoming fixtures/i }).first().click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).waitFor();
   assert.equal(await page.getByRole('button', { name: /Back to Home/i }).count(), 1);
