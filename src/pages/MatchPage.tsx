@@ -305,6 +305,23 @@ export default function MatchPage({
         </div>
       </div>
 
+      {/* Snabb åtkomst till matchinformation på små skärmar. */}
+      <nav aria-label="Matchdetaljer" className="mt-4 grid grid-cols-3 gap-2 sm:hidden">
+        {([
+          { href: '#match-lineups', label: 'Laguppställning' },
+          { href: '#match-statistics', label: 'Statistik' },
+          { href: '#match-events', label: 'Händelser' },
+        ] as const).map(({ href, label }) => (
+          <a
+            key={href}
+            href={href}
+            className="flex min-h-11 min-w-0 items-center justify-center rounded-xl border border-white/10 bg-ink-800 px-1.5 py-2 text-center text-[11px] font-semibold text-ink-100 transition-colors active:border-pitch-500/50 active:bg-pitch-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pitch-400"
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
       {/* Video player area */}
       <div className="mt-6 card overflow-hidden">
         <div className="relative aspect-video w-full bg-ink-950">
@@ -404,7 +421,7 @@ export default function MatchPage({
       </div>
 
       {/* Laguppställningar hämtas från redan tillgängliga matchdetaljer. */}
-      <section className="mt-6 card p-4 sm:p-8" aria-labelledby="lineups-title">
+      <section id="match-lineups" className="mt-6 scroll-mt-24 card p-4 sm:p-8" aria-labelledby="lineups-title">
         <h2 id="lineups-title" className="mb-5 font-display text-lg font-bold">Laguppställningar</h2>
         {!match.details?.lineups.home.length && !match.details?.lineups.away.length ? (
           <p className="text-sm text-ink-400" role="status">
@@ -462,7 +479,7 @@ export default function MatchPage({
       </section>
 
       {/* Matchstatistik från redan hämtade matchdetaljer. */}
-      <section className="mt-6 card p-4 sm:p-8" aria-labelledby="statistics-title">
+      <section id="match-statistics" className="mt-6 scroll-mt-24 card p-4 sm:p-8" aria-labelledby="statistics-title">
         <h2 id="statistics-title" className="mb-5 font-display text-lg font-bold">Matchstatistik</h2>
         {!match.details?.statistics.some((stat) =>
           Number.isFinite(stat.home) && Number.isFinite(stat.away) &&
@@ -512,7 +529,7 @@ export default function MatchPage({
       </section>
 
       {/* Timeline / events */}
-      <div className="mt-6 card p-4 sm:p-8">
+      <div id="match-events" className="mt-6 scroll-mt-24 card p-4 sm:p-8">
         <h2 className="mb-5 flex items-center gap-2 font-display text-lg font-bold">
           <Radio className="h-5 w-5 text-pitch-400" />
           Matchhändelser
