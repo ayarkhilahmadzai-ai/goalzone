@@ -59,19 +59,19 @@ try {
   await page.keyboard.press('Enter');
   assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false');
   const mobileNav = page.getByRole('navigation', { name: 'Mobilnavigering' });
-  for (const tab of ['Hem', 'LIVE', 'Matcher', 'Ligor', 'Favoriter']) {
+  for (const tab of ['Hem', 'Matcher', 'Tabeller', 'Skytteliga', 'Favoriter']) {
     assert.equal(await mobileNav.getByRole('button', { name: tab, exact: true }).count(), 1);
   }
   await mobileNav.getByRole('button', { name: 'Matcher' }).click();
   await page.getByRole('heading', { name: 'Upcoming Fixtures' }).waitFor();
   assert.equal(await mobileNav.getByRole('button', { name: 'Matcher' }).getAttribute('aria-current'), 'page');
-  await mobileNav.getByRole('button', { name: 'Ligor' }).click();
+  await mobileNav.getByRole('button', { name: 'Tabeller' }).click();
   await page.getByRole('heading', { name: 'League Standings' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Favoriter' }).click();
   await page.getByRole('heading', { name: 'Favorite Teams' }).first().waitFor();
   assert.equal(await mobileNav.getByRole('button', { name: 'Favoriter' }).getAttribute('aria-current'), 'page');
-  await mobileNav.getByRole('button', { name: 'LIVE' }).click();
-  await page.getByRole('heading', { name: 'Live Matches' }).first().waitFor();
+  await mobileNav.getByRole('button', { name: 'Skytteliga' }).click();
+  await page.getByRole('heading', { name: 'Top Scorers' }).first().waitFor();
   await mobileNav.getByRole('button', { name: 'Hem' }).click();
   await page.getByRole('heading', { name: 'Explore GoalZone' }).waitFor();
   await page.getByRole('button', { name: /Search Teams/i }).click();
